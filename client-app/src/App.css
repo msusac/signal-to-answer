@@ -1,0 +1,50 @@
+.modal-show {
+    display: flex !important;
+    background-color: rgba(0, 0, 0, 0.50) !important;
+    justify-content: center !important;
+    align-items: center !important;
+    text-align: center;
+}
+
+.modal-hide {
+    display: none !important;
+}
+
+.modal-info {
+    z-index: 9999 !important;
+}
+
+.modal-loading {
+    z-index: 9998 !important;
+}
+
+.modal-login, .modal-register, .modal-create-game, .modal-logout, .modal-waiting-room {
+    z-index: 9997 !important;
+}
+
+.modal-body-loading {
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+.modal-spinner-loading {
+    color: white;
+    width: 125px !important;
+    height: 125px !important;
+    margin: 25px;
+}
+
+.modal-text-loading {
+    color: white;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 24px;
+    font-weight: bold;
+    margin: 5px;
+}
+
+.modal-spinner-waiting-room {
+    color: blue;
+    width: 125px !important;
+    height: 125px !important;
+    margin: 25px;
+}

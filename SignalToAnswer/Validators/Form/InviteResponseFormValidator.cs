@@ -1,0 +1,50 @@
+﻿using SignalToAnswer.Constants;
+using SignalToAnswer.Entities;
+using SignalToAnswer.Exceptions;
+using SignalToAnswer.Form;
+using SignalToAnswer.Repositories;
+using System.Threading.Tasks;
+
+namespace SignalToAnswer.Validators.Form
+{
+    public class InviteResponseFormValidator
+    {
+        private readonly GameRepository _gameRepository;
+        private readonly GroupRepository _groupRepository;
+        private readonly PlayerRepository _playerRepository;
+
+        public InviteResponseFormValidator(GameRepository gameRepository, GroupRepository groupRepository, PlayerRepository playerRepository)
+        {
+            _gameRepository = gameRepository;
+            _groupRepository = groupRepository;
+            _playerRepository = playerRepository;
+        }
+
+        public async Task Validate(InviteResponseForm form, User user)
+        {
+            if (!form.GameId.HasValue) {
+                throw new SignalToAnswerException("Game Id is Required");
+            }
+
+            if (!form.GroupId.HasValue)
+            {
+                throw new SignalToAnswerException("Group Id is Required");
+            }
+
+            var game = await _gameRepository.FindOneByIdAndGameStatus(form.GameId.Value, GameStatus.CREATED);
+            var group = await _groupRepository.FindOneById(form.GroupId.Value);
+
+            if (game == null || group == null)
+            {
+                throw new SignalToAnswerException("Selected Game not found or was canceled!");
+            }
+
+            var player = await _playerRepository.FindOneByGame_IdAnd_User_Id(game.Id.Value, user.Id);
+
+            if (player == null || player.InviteStatus != InviteStatus.WAITING_TO_RESPOND)
+            {
+                throw new SignalToAnswerException("Invalid Game invitation!");
+            }
+        }
+    }
+}

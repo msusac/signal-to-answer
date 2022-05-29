@@ -1,0 +1,13 @@
+.navbar-header {
+    background: #1a73e8;
+}
+
+.navbar-brand-header {
+    color:white;
+    font-family: Consolas;
+    font-weight: bolder;
+}
+
+.navbar-brand-header:hover {
+    cursor: default;
+}
