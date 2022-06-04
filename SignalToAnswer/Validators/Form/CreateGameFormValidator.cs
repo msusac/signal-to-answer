@@ -84,6 +84,10 @@ namespace SignalToAnswer.Validators.Form
                 {
                     _validationManager.AddValidationError("inviteUser", "Invite User is required!");
                 }
+                else if (inviteUsers.Count > 1)
+                {
+                    _validationManager.AddValidationError("inviteUser", "Only one User can be invited to game!");
+                }
                 else
                 {
                     inviteUsers.ForEach(async user => {

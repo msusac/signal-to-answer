@@ -23,20 +23,20 @@ namespace SignalToAnswer.Validators.Form
         public async Task Validate(InviteResponseForm form, User user)
         {
             if (!form.GameId.HasValue) {
-                throw new SignalToAnswerException("Game Id is Required");
+                throw new SignalToAnswerException("Game Id is required!");
             }
 
             if (!form.GroupId.HasValue)
             {
-                throw new SignalToAnswerException("Group Id is Required");
+                throw new SignalToAnswerException("Group Id is required!");
             }
 
-            var game = await _gameRepository.FindOneByIdAndGameStatus(form.GameId.Value, GameStatus.CREATED);
+            var game = await _gameRepository.FindOneByIdAndGameStatus(form.GameId.Value, GameStatus.WAITING_FOR_PLAYERS_TO_ACCEPT_INVITE);
             var group = await _groupRepository.FindOneById(form.GroupId.Value);
 
             if (game == null || group == null)
             {
-                throw new SignalToAnswerException("Selected Game not found or was canceled!");
+                throw new SignalToAnswerException("Selected Game was cancelled or not found!");
             }
 
             var player = await _playerRepository.FindOneByGame_IdAnd_User_Id(game.Id.Value, user.Id);
