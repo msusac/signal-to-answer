@@ -90,8 +90,15 @@ export function isGroupTypeInGame() {
   return groups.some(a => a.id === app.state.groupType.id);
 }
 
+export function leaveInviteLobby() {
+  presenceHubChangeGroupUnique(GroupType.MAIN_LOBBY)
+  hideLoadingModal()
+}
+
 // Game Hub
 export function gameHubStartConnection(gameId) {
+  showLoadingModal("Establishing connection to game...")
+
   const connection = new HubConnectionBuilder()
     .withUrl("http://localhost:5000/hub/game-hub?gameId=" + gameId, {
        accessTokenFactory: () => app.state.token
