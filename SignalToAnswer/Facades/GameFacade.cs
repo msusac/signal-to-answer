@@ -76,9 +76,7 @@ namespace SignalToAnswer.Facades
                 else
                 {
                     await _playerService.AddPlayerToGame(game, users[i], InviteStatus.WAITING_TO_RESPOND);
-
-                    var connection = await _connectionService.GetOne(users[i].Id);
-                    await _presenceHubContext.Clients.User(connection.UserIdentifier).SendCoreAsync("ReceivePrivateGameInvite", new object[] { username, game.Id.Value, inviteLobby.Id.Value });
+                    await SendPrivateGameInviteToUser(game, inviteLobby, users[i], username);
                 }
             }
         }
@@ -90,7 +88,7 @@ namespace SignalToAnswer.Facades
 
             await _inviteResponseFormValidator.Validate(form, user);
 
-            var game = await _gameService.GetOne(form.GameId.Value, GameStatus.CREATED);
+            var game = await _gameService.GetOne(form.GameId.Value, GameStatus.WAITING_FOR_PLAYERS_TO_ACCEPT_INVITE);
             var inviteLobby = await _groupService.GetOne(form.GroupId.Value);
             var player = await _playerService.GetQuietly(game.Id.Value, user.Id);
 
@@ -98,35 +96,34 @@ namespace SignalToAnswer.Facades
             {
                 await _playerService.ChangeInviteStatus(player, InviteStatus.ACCEPTED);
                 await ChangeGroup(inviteLobby, user);
-
-                var connections = await _connectionService.GetAll(inviteLobby.Id.Value);
-
-                if (connections.Count == game.MaxPlayerCount)
-                {
-                    var inGamePrivate = await _groupService.CreateInGamePrivateGroup(game);
-
-                    connections.ForEach(async c =>
-                    {
-                        await ChangeGroup(inGamePrivate, c);
-                        await _presenceHubContext.Clients.User(c.UserIdentifier).SendCoreAsync("ReceivePrivateGame", new object[] { game.Id.Value });
-                    });
-                }
             }
             else
             {
                 await _playerService.ChangeInviteStatus(player, InviteStatus.REJECTED);
-                await _gameService.Deactivate(game);
-
-                var connections = await _connectionService.GetAll(inviteLobby.Id.Value);
-
-                connections.ForEach(async c =>
-                {
-                    var mainLobby = await _groupService.GetOneUnique(GroupType.MAIN_LOBBY);
-                    await ChangeGroup(mainLobby, c);
-
-                    await _presenceHubContext.Clients.User(c.UserIdentifier).SendCoreAsync("ReceivePrivateGameInviteRejected", new object[] { game.Id.Value });
-                });
+                await CancelPrivateGame(game, inviteLobby);
             }
+        }
+
+        private async Task SendPrivateGameInviteToUser(Game game, Group inviteLobby, User user, string fromUser)
+        {
+            var connection = await _connectionService.GetOne(user.Id);
+            await _presenceHubContext.Clients.User(connection.UserIdentifier).SendCoreAsync("ReceivePrivateGameInvite", new object[] { fromUser, game.Id.Value, inviteLobby.Id.Value });
+        }
+
+        private async Task CancelPrivateGame(Game game, Group inviteLobby)
+        {
+            await _gameService.ChangeStatus(game, GameStatus.CANCELLED);
+            await _gameService.Deactivate(game);
+
+            var connections = await _connectionService.GetAll(inviteLobby.Id.Value);
+            var message = "User rejected invite.";
+
+            connections.ForEach(async c =>
+            {
+                var mainLobby = await _groupService.GetOneUnique(GroupType.MAIN_LOBBY);
+                await ChangeGroup(mainLobby, c);
+                await _presenceHubContext.Clients.User(c.UserIdentifier).SendCoreAsync("ReceivePrivateGameCancelled", new object[] { message });
+            });
         }
 
         private async Task ChangeGroup(Group group, Connection connection)
