@@ -1,5 +1,5 @@
 import { Component } from "react";
-import { hideInfoModal, hideLoadingModal, showInfoModal, showLoadingModal } from "../App";
+import { hideInfoModal, hideLoadingModal, leaveInviteLobby, showInfoModal, showLoadingModalWithButton } from "../App";
 import api from "../services/api";
 
 class PrivateGameJoinToast extends Component {
@@ -11,7 +11,7 @@ class PrivateGameJoinToast extends Component {
 
     async onSubmit(isAccepted) {
         if (isAccepted) {
-            showLoadingModal("Joining private game ...")
+            showLoadingModalWithButton("Joining private game...", "Leave", () => leaveInviteLobby())
         }
 
         const body = {
@@ -25,12 +25,11 @@ class PrivateGameJoinToast extends Component {
         }
         catch (ex) {
             hideLoadingModal()
-            showInfoModal("An error has occured", true, () => hideInfoModal())
+            showInfoModal(ex.message, true, () => hideInfoModal())
         }
     }
 
     render() {
-        console.log(this.props)
         return (
             <>
                 <div className="text-center m-2">

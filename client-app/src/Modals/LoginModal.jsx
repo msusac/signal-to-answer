@@ -43,7 +43,7 @@ class LoginModal extends Component {
 
     async onLogin() {
         this.setState({ errors: [] })
-        showLoadingModal("Signing in ...")
+        showLoadingModal("Signing in...")
 
         const body = {
             username: this.state.username,

@@ -14,7 +14,7 @@ class WaitingRoomModal extends Component {
 
     render() {
         const count = retrievePublicLobbyCount() - 1
-        const message = count > 0 ? `${count} player(s) searching for game ...` : `No players in public lobby ...`
+        const message = count > 0 ? `${count} player(s) searching for game...` : `No players in public lobby...`
 
         return (
             <div className={`modal modal-waiting-room ${this.props.show ? "modal-show" : "modal-hide"}`}>

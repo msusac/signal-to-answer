@@ -48,7 +48,7 @@ class RegisterModal extends Component {
 
     async onRegister() {
         this.setState({ errors: [] })
-        showLoadingModal("Creating a new account ...")
+        showLoadingModal("Creating a new account...")
 
         const body = {
             username: this.state.username,
