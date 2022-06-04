@@ -13,9 +13,9 @@ namespace SignalToAnswer.Extensions
                 q.UseMicrosoftDependencyInjectionJobFactory();
 
                 AddPublicLobbyJob(q);
-                AddDeactivateGuestJob(q);
                 AddInviteLobbyJob(q);
-        });
+                AddDeactivateGuestJob(q);
+            });
 
             services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
         }
@@ -33,19 +33,6 @@ namespace SignalToAnswer.Extensions
                     .RepeatForever()));
         }
 
-        private static void AddDeactivateGuestJob(IServiceCollectionQuartzConfigurator q)
-        {
-            var deactivateGuestJobKey = new JobKey("DeactivateGuestJob");
-
-            q.AddJob<DeactivateGuestJob>(opt => opt.WithIdentity(deactivateGuestJobKey));
-
-            q.AddTrigger(opts => opts.ForJob(deactivateGuestJobKey)
-                .WithIdentity("deactivateGuestJob-trigger")
-                .WithSimpleSchedule(x => x
-                    .WithIntervalInSeconds(30)
-                    .RepeatForever()));
-        }
-
         private static void AddInviteLobbyJob(IServiceCollectionQuartzConfigurator q)
         {
             var inviteLobbyJobKey = new JobKey("InviteLobbyJob");
@@ -56,6 +43,19 @@ namespace SignalToAnswer.Extensions
                 .WithIdentity("inviteLobbyJob-trigger")
                 .WithSimpleSchedule(x => x
                     .WithIntervalInSeconds(10)
+                    .RepeatForever()));
+        }
+
+        private static void AddDeactivateGuestJob(IServiceCollectionQuartzConfigurator q)
+        {
+            var deactivateGuestJobKey = new JobKey("DeactivateGuestJob");
+
+            q.AddJob<DeactivateGuestJob>(opt => opt.WithIdentity(deactivateGuestJobKey));
+
+            q.AddTrigger(opts => opts.ForJob(deactivateGuestJobKey)
+                .WithIdentity("deactivateGuestJob-trigger")
+                .WithSimpleSchedule(x => x
+                    .WithIntervalInSeconds(30)
                     .RepeatForever()));
         }
     }
