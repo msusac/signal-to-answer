@@ -1,5 +1,5 @@
 import { Component } from "react";
-import { hideLoadingModal, showLoadingModal, showInfoModal, hideInfoModal, gameHubStartConnection, isGroupType } from "../App";
+import { hideLoadingModal, showLoadingModal, showInfoModal, hideInfoModal, gameHubStartConnection, isGroupType, showLoadingModalWithButton, leaveInviteLobby } from "../App";
 import LiveSelect from "../Common/LiveSelect";
 import MultiSelect from "../Common/MultiSelect";
 import Range from "../Common/Range";
@@ -27,7 +27,7 @@ class CreateGameModal extends Component {
             limit: 10,
             difficulty: 0,
             categories: [],
-            selectedUser: {},
+            selectedUser: '',
             validations: {},
             errors: [],
             userOption: '',
@@ -81,11 +81,14 @@ class CreateGameModal extends Component {
     }
 
     onSubmit() {
-        const validations = {
+        let validations = {
             limit: validateRequired(this.state.limit, "Limit"),
             difficulty: validateRequired(this.state.difficulty, "Difficulty"),
             categories: validateRequired(this.state.categories, "Categories"),
-            inviteUser: isGroupType(GroupType.PRIVATE_LOBBY) && validateRequired(this.state.selectedUser, "Invite User")
+        }
+
+        if (isGroupType(GroupType.PRIVATE_LOBBY)) {
+            validations = { ...validations, inviteUser: validateRequired(this.state.selectedUser, "Invite User")}
         }
 
         this.setState({ validations: validations })
