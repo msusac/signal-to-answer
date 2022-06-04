@@ -19,12 +19,19 @@ namespace SignalToAnswer.Services
         }
 
         [Transactional]
+        public async Task<Game> ChangeStatus(Game game, int gameStatus)
+        {
+            game.GameStatus = gameStatus;
+            return await _gameRepository.Save(game);
+        }
+
+        [Transactional]
         public async Task<Game> CreateGame()
         {
             var game = new Game
             {
                 MaxPlayerCount = 2,
-                GameStatus = GameStatus.CREATED,
+                GameStatus = GameStatus.WAITING_FOR_PLAYERS_TO_CONNECT,
                 GameType = GameType.PUBLIC,
                 QuestionsCount = 15,
                 QuestionDifficulty = QuestionDifficulty.DEFAULT,
@@ -41,7 +48,6 @@ namespace SignalToAnswer.Services
         {
             var game = new Game
             {       
-                GameStatus = GameStatus.CREATED,
                 GameType = gameType,
                 QuestionCategories = questionCategories,
                 QuestionsCount = questionsCount,
@@ -50,10 +56,12 @@ namespace SignalToAnswer.Services
 
             if (gameType.Equals(GameType.SOLO))
             {
+                game.GameStatus = GameStatus.WAITING_FOR_PLAYERS_TO_CONNECT;
                 game.MaxPlayerCount = 1;
             }
             else
             {
+                game.GameStatus = GameStatus.WAITING_FOR_PLAYERS_TO_ACCEPT_INVITE;
                 game.MaxPlayerCount = 2;
             }
 
@@ -64,7 +72,12 @@ namespace SignalToAnswer.Services
 
         public async Task<List<Game>> GetAll(int gameType, int gameStatus)
         {
-            return await _gameRepository.FindAllByGameType_AndGameStatus(gameType, gameStatus);
+            return await _gameRepository.FindAllByGameTypeAndGameStatus(gameType, gameStatus);
+        }
+
+        public async Task<List<int?>> GetAllId(int gameType, int gameStatus)
+        {
+            return await _gameRepository.FindAllIdByGameTypeAndGameStatus(gameType, gameStatus);
         }
 
         public async Task<Game> GetOne(int gameId, int gameStatus)
@@ -77,6 +90,11 @@ namespace SignalToAnswer.Services
             }
 
             return game;
+        }
+
+        public async Task<Game> GetOneQuietly(int gameId, int gameStatus)
+        {
+            return await _gameRepository.FindOneByIdAndGameStatus(gameId, gameStatus);
         }
 
         [Transactional]
