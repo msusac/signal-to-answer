@@ -22,11 +22,33 @@ export function retrieveToken() {
 }
 
 export function hideLoadingModal() {
-  app.setState({ loadingModalShow: false, loadingModalMessage: '' })
+  app.setState({ 
+    loadingModalShow: false, 
+    loadingModalMessage: '',
+    loadingModalBtnShow: false, 
+    loadingModalBtnAction: '',
+    loadingModalBtnActionName: ''
+  })
 }
 
 export function showLoadingModal(message) {
-  app.setState({ loadingModalShow: true, loadingModalMessage: message })
+  app.setState({ 
+    loadingModalShow: true, 
+    loadingModalMessage: message,
+    loadingModalBtnShow: false, 
+    loadingModalBtnAction: '',
+    loadingModalBtnActionName: ''
+  })
+}
+
+export function showLoadingModalWithButton(message, btnActionName, btnAction) {
+  app.setState({ 
+    loadingModalShow: true, 
+    loadingModalMessage: message,
+    loadingModalBtnShow: true, 
+    loadingModalBtnAction: btnAction,
+    loadingModalBtnActionName: btnActionName
+  })
 }
 
 export function hideInfoModal() {
@@ -256,6 +278,9 @@ class App extends Component {
     this.state = {
       loadingModalShow: false,
       loadingModalMessage: '',
+      loadingModalBtnShow: false, 
+      loadingModalBtnAction: '',
+      loadingModalBtnActionName: '',
 
       infoModalShow: false,
       infoModalMessage: '',
@@ -321,7 +346,10 @@ class App extends Component {
         <>
           <LoadingModal 
             show={this.state.loadingModalShow} 
-            message={this.state.loadingModalMessage} 
+            message={this.state.loadingModalMessage}
+            showBtn={this.state.loadingModalBtnShow}
+            btnAction={this.state.loadingModalBtnAction}
+            btnActionName={this.state.loadingModalBtnActionName} 
           />
           <Header groupType={this.state.groupType} />
           <main className="bg-light d-flex align-items-center min-vh-100">

@@ -141,7 +141,7 @@ class CreateGameModal extends Component {
     }
 
     async onCreatePrivateGame() {
-        showLoadingModal("Sending private game invite. Waiting for response.")
+        showLoadingModalWithButton("Sending private game invite.", "Leave", () => leaveInviteLobby())
 
         let categories = []
         this.state.categories.forEach(c => {
