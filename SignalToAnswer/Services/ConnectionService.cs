@@ -33,7 +33,7 @@ namespace SignalToAnswer.Services
         public async Task<List<Connection>> GetAll(int groupId)
         {
             return await _connectionRepository.FindAllByGroupId(groupId);
-        }
+        } 
 
         public async Task<Connection> GetOne(Guid userId)
         {

@@ -22,7 +22,7 @@ namespace SignalToAnswer.Hubs
 
         public override async Task OnConnectedAsync()
         {
-            var game = await _gameService.GetOne(Context.GetGameId(), GameStatus.CREATED);
+            var game = await _gameService.GetOne(Context.GetGameId(), GameStatus.WAITING_FOR_PLAYERS_TO_CONNECT);
             var user = await _userService.GetOne(Context.GetUsername());
         }
 

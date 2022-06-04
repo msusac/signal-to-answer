@@ -133,7 +133,7 @@ namespace SignalToAnswer.Services
 
             var count = items.Count() + 1;
 
-            return "GuestUser" + count;
+            return string.Format("GuestUser-{0}", count);
         }
     }
 }

@@ -10,8 +10,6 @@ namespace SignalToAnswer.Hubs
 {
     public interface IPresenceHub
     {
-        public Task ReceivePublicGame(int gameId);
-
         public Task ReceiveGroupType(int groupTypeId);
 
         public Task ReceivePublicLobbyCount(int count);

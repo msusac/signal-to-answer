@@ -100,8 +100,6 @@ export function gameHubStartConnection(gameId) {
     .configureLogging(LogLevel.Information)
     .build()
 
-  showLoadingModal("Establishing connection to game...")
-
   try {
     connection.start()
     app.setState({ gameHubConnection: connection })
@@ -117,6 +115,8 @@ export function gameHubStartConnection(gameId) {
 
 // Presence Hub
 export function presenceHubStartConnection() {
+  showLoadingModal("Establishing connection...")
+  
   const connection = new HubConnectionBuilder()
     .withUrl("http://localhost:5000/hub/presence-hub", {
        accessTokenFactory: () => app.state.token
@@ -124,8 +124,6 @@ export function presenceHubStartConnection() {
     .withAutomaticReconnect()
     .configureLogging(LogLevel.Information)
     .build()
-
-  showLoadingModal("Establishing connection...")
 
   try {
     connection.start()
@@ -168,7 +166,7 @@ export function presenceHubStartConnection() {
   })
 
   connection.on("ReceivePublicGame", (gameId) => {
-    showLoadingModal("Connection to public game ...");
+    showLoadingModal("Connecting to public game...");
 
     try {
       gameHubStartConnection(gameId)
@@ -183,7 +181,7 @@ export function presenceHubStartConnection() {
   });
 
   connection.on("ReceivePrivateGame", (gameId) => {
-    showLoadingModal("Connection to private game ...");
+    showLoadingModal("Connecting to private game...");
 
     try {
       gameHubStartConnection(gameId)
@@ -213,12 +211,12 @@ export function presenceHubStartConnection() {
     }
   })
 
-  connection.on("ReceivePrivateGameInviteRejected", (gameId) => {
+  connection.on("ReceivePrivateGameCancelled", (message) => {
     hideLoadingModal()
     app.setState({ toastMsgTimeEnabled: false })
 
     try {
-      toast.info("Private game was cancelled due player rejecting invitation!")
+      toast.info("Private game was cancelled for following reason: " + message)
     }
     catch (ex) {
       showInfoModal("An error has occurred while receiving private game invite.", true, () => {
@@ -227,18 +225,8 @@ export function presenceHubStartConnection() {
     }
   })
 
-  connection.on("ReceivePrivateGameInviteTimeout", (gameId) => {
-    hideLoadingModal()
-    app.setState({ toastMsgTimeEnabled: false })
-
-    try {
-      toast.info("Private game was cancelled due not enough players in invite lobby to start game!")
-    }
-    catch (ex) {
-      showInfoModal("An error has occurred while receiving private game invite.", true, () => {
-        hideInfoModal()
-      })
-    }
+  connection.on("ReceivePrivateGameLoadingMessage", (message) => {
+    app.setState({ loadingModalMessage: message })
   })
 }
 
