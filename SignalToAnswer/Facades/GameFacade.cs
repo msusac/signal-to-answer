@@ -2,6 +2,7 @@
 using SignalToAnswer.Attributes;
 using SignalToAnswer.Constants;
 using SignalToAnswer.Entities;
+using SignalToAnswer.Exceptions;
 using SignalToAnswer.Form;
 using SignalToAnswer.Hubs;
 using SignalToAnswer.Services;
@@ -9,7 +10,7 @@ using SignalToAnswer.Validators.Form;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace SignalToAnswer.Facades
+namespace SignalToAnswer.Facades.Hubs
 {
     public class GameFacade
     {
@@ -22,8 +23,9 @@ namespace SignalToAnswer.Facades
         private readonly CreateGameFormValidator _createGameFormValidator;
         private readonly InviteResponseFormValidator _inviteResponseFormValidator;
 
-        public GameFacade(IHubContext<PresenceHub> presenceHubContext, ConnectionService connectionService, GameService gameService,
-            GroupService groupService, PlayerService playerService, UserService userService, CreateGameFormValidator createGameFormValidator,
+        public GameFacade(IHubContext<PresenceHub> presenceHubContext, ConnectionService connectionService, 
+            GameService gameService, GroupService groupService, PlayerService playerService, 
+            UserService userService, CreateGameFormValidator createGameFormValidator, 
             InviteResponseFormValidator inviteResponseFormValidator)
         {
             _presenceHubContext = presenceHubContext;
@@ -39,11 +41,13 @@ namespace SignalToAnswer.Facades
         [Transactional]
         public async Task<int> CreateSoloGame(CreateGameForm form, string username)
         {
+            var user = await _userService.GetOne(username);
+
+            await IsUserInGroupUnique(user, GroupType.SOLO_LOBBY);
             await _createGameFormValidator.Validate(form, GameType.SOLO);
 
             var game = await _gameService.CreateGame(form.Categories, form.Limit.Value, GameType.SOLO, form.Difficulty.Value);
             var inGameSolo = await _groupService.CreateInGameSoloGroup(game);
-            var user = await _userService.GetOne(username);
 
             await _playerService.AddPlayerToGame(game, user);
 
@@ -55,15 +59,18 @@ namespace SignalToAnswer.Facades
         [Transactional]
         public async Task CreatePrivateGame(CreateGameForm form, string username)
         {
+            var user = await _userService.GetOne(username);
+
+            await IsUserInGroupUnique(user, GroupType.PRIVATE_LOBBY);
             await _createGameFormValidator.Validate(form, GameType.PRIVATE);
 
             var game = await _gameService.CreateGame(form.Categories, form.Limit.Value, GameType.PRIVATE, form.Difficulty.Value);
             var inviteLobby = await _groupService.CreateInviteLobbyGroup(game);
 
-            List<string> usernames = new() { username };
+            var usernames = new List<string> { username };
             form.InviteUsers.ForEach(user => usernames.Add(user));
 
-            List<User> users = new();
+            var users = new List<User>();
             usernames.ForEach(async u => users.Add(await _userService.GetOne(u)));
 
             for (int i = 0; i < usernames.Count; i++)
@@ -86,6 +93,7 @@ namespace SignalToAnswer.Facades
         {
             var user = await _userService.GetOne(username);
 
+            await IsUserInGroupUnique(user, GroupType.MAIN_LOBBY);
             await _inviteResponseFormValidator.Validate(form, user);
 
             var game = await _gameService.GetOne(form.GameId.Value, GameStatus.WAITING_FOR_PLAYERS_TO_ACCEPT_INVITE);
@@ -110,6 +118,7 @@ namespace SignalToAnswer.Facades
             await _presenceHubContext.Clients.User(connection.UserIdentifier).SendCoreAsync("ReceivePrivateGameInvite", new object[] { fromUser, game.Id.Value, inviteLobby.Id.Value });
         }
 
+        [Transactional]
         private async Task CancelPrivateGame(Game game, Group inviteLobby)
         {
             await _gameService.ChangeStatus(game, GameStatus.CANCELLED);
@@ -136,6 +145,17 @@ namespace SignalToAnswer.Facades
         {
             var connection = await _connectionService.GetOne(user.Id);
             await ChangeGroup(group, connection);
+        }
+
+        private async Task IsUserInGroupUnique(User user, int groupType)
+        {
+            var groupUnique = await _groupService.GetOneUnique(groupType);
+            var connection = await _connectionService.GetOne(user.Id);
+
+            if (connection.GroupId != groupUnique.Id)
+            {
+                throw new SignalToAnswerException(string.Format("You must be in group {0} to proceed with action", groupUnique.GroupName));
+            }
         }
     }
 }
