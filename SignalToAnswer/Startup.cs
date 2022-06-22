@@ -26,7 +26,7 @@ namespace SignalToAnswer
 
             services.AddControllers();
 
-            services.AddSignalR();
+            services.AddSignalR().AddJsonProtocol();
 
             services.AddQuartz();
         }

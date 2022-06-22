@@ -4,7 +4,7 @@ namespace SignalToAnswer.Entities
 {
     public class Result
     {
-        public int Id { get; set; }
+        public int? Id { get; set; }
 
         public int GameId { get; set; }
 

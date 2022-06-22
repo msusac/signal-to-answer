@@ -6,7 +6,6 @@ import Footer from './Other/Footer';
 import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
 import api from './services/api';
 import { isNotNil } from './services/util';
-import InfoModal from './Modals/InfoModal';
 import { GroupType, Roles } from './services/contants';
 import { Redirect, Route, Switch } from 'react-router-dom';
 import Menu from './Menu/Menu';
@@ -51,14 +50,6 @@ export function showLoadingModalWithButton(message, btnActionName, btnAction) {
   })
 }
 
-export function hideInfoModal() {
-  app.setState({ infoModalShow: false, infoModalMessage: '', infoModalHasError: false, infoModalAction: null })
-}
-
-export function showInfoModal(message, hasError, action) {
-  app.setState({ infoModalShow: true, infoModalMessage: message, infoModalHasError: hasError, infoModalAction: action })
-}
-
 export function setGroup(groupType) {
   app.setState({ groupType: groupType })
 }
@@ -90,9 +81,17 @@ export function isGroupTypeInGame() {
   return groups.some(a => a.id === app.state.groupType.id);
 }
 
-export function leaveInviteLobby() {
-  presenceHubChangeGroupUnique(GroupType.MAIN_LOBBY)
-  hideLoadingModal()
+export function clearGameData() {
+  app.setState({
+    results: [],
+    answerChoices: [],
+    question: '',
+    timer: ''
+  })
+}
+
+export function retrieveUser() {
+  return app.state.user
 }
 
 // Game Hub
@@ -112,11 +111,100 @@ export function gameHubStartConnection(gameId) {
     app.setState({ gameHubConnection: connection })
     hideLoadingModal()
   }
-  catch (ex) {
+  catch(ex) {
+    toast.error("An error has occurred during connection to game.", { containerId: "info" })
     hideLoadingModal()
-    showInfoModal("An error has occurred during connection to game.", true, () => {
-      hideInfoModal()
+  }
+
+  try {
+    connection.on("ReceiveLoadingMessage", (message) => {
+      showLoadingModalWithButton(message, "Leave game", () => {
+        leaveGame()
+        hideLoadingModal()
+      })
     })
+  }
+  catch(ex) {
+    toast.error("An error has occured during loading game.", { containerId: "info" })
+    hideLoadingModal()
+    leaveGame()
+  }
+  
+  try {
+    connection.on("ReceiveHideLoading", () => {
+      hideLoadingModal()
+    })
+  }
+  catch(ex) {
+    toast.error("An error has occured during game.", { containerId: "info" })
+    leaveGame()
+    hideLoadingModal()
+  }
+
+  try {
+    connection.on("ReceiveResultInfo", (results) => {
+      app.setState({ results: results })
+    })
+  }
+  catch(ex) {
+    toast.error("An error has occurred while retrieving results info.", { containerId: "info" })
+    leaveGame()
+    hideLoadingModal()
+  }
+
+  connection.on("ReceiveQuestionInfo", (question) => {
+    try {
+       app.setState({ question: question })
+    }
+    catch(ex) {
+      toast.error("An error has occurred while retrieving question info.", { containerId: "info" })
+      leaveGame()
+      hideLoadingModal()
+    }
+  })
+
+  try {
+    connection.on("ReceiveTimerInfo", (timer) => {
+      app.setState({ timer: timer })
+    })
+  
+  }
+  catch(ex) {
+    toast.error("An error has occurred while retrieving timer.", { containerId: "info" })
+    leaveGame()
+    hideLoadingModal()
+  }
+
+  try {
+    connection.on("ReceiveAnswerChoice", (answers) => {
+      app.setState({ answerChoices: answers })
+    })
+  }
+  catch(ex) {
+    toast.error("An error has occurred while retrieving answer choices.", { containerId: "info" })
+    leaveGame()
+    hideLoadingModal()
+  }
+
+  try {
+    connection.on("ReceiveGameCancelled", (message) => {
+      toast.info("Game cancelled due following reason: " + message, { containerId: "info" })
+      leaveGame()
+      hideLoadingModal()
+    })
+  }
+  catch (ex) {
+    leaveGame()
+    hideLoadingModal()
+  }
+}
+
+export function gameHubAnswerQuestion(selectedAnswerIndex) {
+  try {
+    app.state.gameHubConnection.invoke("AnswerQuestion", selectedAnswerIndex)
+  }
+  catch (ex) {
+    toast.error("An error has occurred while sending question answer", { containerId: "info" })
   }
 }
 
@@ -136,15 +224,13 @@ export function presenceHubStartConnection() {
     connection.start()
     hideLoadingModal()
   }
-  catch (ex) {
+  catch(ex) {
+    toast.error("An error has occurred during connection.", { containerId: "info" })
     hideLoadingModal()
-    showInfoModal("An error has occurred during connection.", true, () => {
-      hideInfoModal()
-    })
   }
 
-  connection.on("ReceiveGroupType", (groupId) => {
-    try {
+  try {
+    connection.on("ReceiveGroupType", (groupId) => {
       app.setState({ groupType: Object.values(GroupType).find(a => a.id === groupId) })
 
       if (isGroupType(GroupType.OFFLINE)) {
@@ -153,84 +239,64 @@ export function presenceHubStartConnection() {
       else {
         app.setState({ presenceHubConnection: connection, gameHubConnection: null })
       }
-    }
-    catch (ex) {
-      showInfoModal("An error has occurred during connection.", true, () => {
-        hideInfoModal()
-      })
-    }
-  });
+    });
+  }
+  catch(ex) {
+    toast.error("An error has occurred during connection.", { containerId: "info" })
+  }
 
-  connection.on("ReceivePublicLobbyCount", (count) => {
-    try {
+  try {
+    connection.on("ReceivePublicLobbyCount", (count) => {
       app.setState({ publicLobbyCount: count })
-    }
-    catch (ex) {
-      showInfoModal("An error has occurred while retrieving player count.", true, () => {
-        hideInfoModal()
-      })
-    }
-  })
+    })
+  }
+  catch(ex) {
+    toast.error("An error has occurred while retrieving player count.", { containerId: "info" })
+  }
 
-  connection.on("ReceivePublicGame", (gameId) => {
-    showLoadingModal("Connecting to public game...");
-
-    try {
+  try {
+    connection.on("ReceivePublicGame", (gameId) => {
       gameHubStartConnection(gameId)
       hideLoadingModal()
-    }
-    catch (ex) {
-      hideLoadingModal();
-      showInfoModal("An error has occurred during joining public game.", true, () => {
-        hideInfoModal()
-      })
-    }
-  });
+    });
+  }
+  catch(ex) {
+    toast.error("An error has occurred during joining public game.", { containerId: "info" })
+    hideLoadingModal();
+  }
 
-  connection.on("ReceivePrivateGame", (gameId) => {
-    showLoadingModal("Connecting to private game...");
-
-    try {
+  try {
+    connection.on("ReceivePrivateGame", (gameId) => {
       gameHubStartConnection(gameId)
       hideLoadingModal()
-    }
-    catch (ex) {
+    });
+  }
+  catch(ex) {
+    toast.error("An error has occurred during joining private game.", { containerId: "info" })
       hideLoadingModal();
-      showInfoModal("An error has occurred during joining private game.", true, () => {
-        hideInfoModal()
-      })
-    }
-  });
+  }
 
-  connection.on("ReceivePrivateGameInvite", (fromUser, gameId, groupId) => {
-    app.setState({ toastMsgTimeEnabled: true })
-
-    try {
+  try {
+    connection.on("ReceivePrivateGameInvite", (fromUser, gameId, groupId) => {
       const audio = new Audio(notificationAudio)
       audio.play()
-    
-      toast.info(<PrivateGameJoinToast fromUser={fromUser} gameId={gameId} groupId={groupId} />)
-    }
-    catch (ex) {
-      showInfoModal("An error has occurred while receiving private game invite.", true, () => {
-        hideInfoModal()
-      })
-    }
-  })
+      
+      toast.info(<PrivateGameJoinToast fromUser={fromUser} gameId={gameId} groupId={groupId} />, { containerId: "invite" })
+    })
+  }
+  catch(ex) {
+    toast.error("An error has occurred while receiving private game invite.", { containerId: "info" })
+  }
 
-  connection.on("ReceivePrivateGameCancelled", (message) => {
-    hideLoadingModal()
-    app.setState({ toastMsgTimeEnabled: false })
-
-    try {
-      toast.info("Private game was cancelled for following reason: " + message)
-    }
-    catch (ex) {
-      showInfoModal("An error has occurred while receiving private game invite.", true, () => {
-        hideInfoModal()
-      })
-    }
-  })
+  try {
+    connection.on("ReceivePrivateGameCancelled", (message) => {
+      hideLoadingModal()
+      toast.info("Private game was cancelled due following reason: " + message, { containerId: "info" })
+    })
+  }
+  catch (ex) {
+    toast.error("An error has occurred while receiving private game invite.", { containerId: "info" })
+  }
 
   connection.on("ReceivePrivateGameLoadingMessage", (message) => {
     app.setState({ loadingModalMessage: message })
@@ -245,25 +311,33 @@ export function presenceHubStopConnection() {
     app.setState({ presenceHubConnection: null, gameHubConnection: null, groupType: GroupType.OFFLINE })
   }
   catch (ex) {
-    showInfoModal("An error has occurred while disconnecting.", true, () => {
-      hideInfoModal()
-    })
+    toast.error("An error has occurred while disconnecting.", { containerId: "info" })
   }
 }
 
 export function presenceHubChangeGroupUnique(groupType) {
   try {
     app.state.presenceHubConnection.invoke("ChangeGroupUnique", groupType.id)
+    clearGameData()
   }
   catch (ex) {
-    showInfoModal("An error has occurred while changing connection groupType.", true, () => {
-      hideInfoModal()
-    })
+    toast.error("An error has occurred while changing connection groupType.", { containerId: "info" })
   }
 }
 
+// Other connection functions
 export function retrievePublicLobbyCount() {
   return app.state.publicLobbyCount
+}
+
+export function leaveInviteLobby() {
+  presenceHubChangeGroupUnique(GroupType.MAIN_LOBBY)
+}
+
+export function leaveGame() {
+  const connection = app.state.gameHubConnection
+  connection.stop()
+  presenceHubChangeGroupUnique(GroupType.MAIN_LOBBY)
 }
 
 class App extends Component {
@@ -277,11 +351,6 @@ class App extends Component {
       loadingModalBtnAction: '',
       loadingModalBtnActionName: '',
 
-      infoModalShow: false,
-      infoModalMessage: '',
-      infoModalHasError: false,
-      infoModalAction: '',
-
       gameHubConnection: '',
       presenceHubConnection: '',
 
@@ -291,9 +360,10 @@ class App extends Component {
       
       publicLobbyCount: 0,
 
-      toastMsgTime: 25000,
-      toastMsgTimeEnabled: false,
-      toastMsgPause: false
+      results: [],
+      answerChoices: [],
+      question: '',
+      timer: '',
     }
 
     app = this
@@ -311,32 +381,27 @@ class App extends Component {
       hideLoadingModal()
     }
     catch (ex) {
+      toast.error("An error has occurred!", { containerId: "info" })
       hideLoadingModal()
-      showInfoModal("An error has occurred!", true, () => {
-        hideInfoModal();
-      });
     }
   }
 
   render() {
     return (
       <>
-        {this.state.toastMsgTimeEnabled ? (
-          <ToastContainer 
-            position="top-left"
-            autoClose={this.state.toastMsgTime}
-            pauseOnFocusLoss={this.state.toastMsgPause}
-            pauseOnHover={this.state.toastMsgPause}  
-          />
-        )
-        :
-        (
-          <ToastContainer position="top-left" />
-        )}
-        <InfoModal show={this.state.infoModalShow} 
-          message={this.state.infoModalMessage} 
-          hasError={this.state.infoModalHasError} 
-          action={this.state.infoModalAction} 
+      {isGroupType(GroupType.MAIN_LOBBY) && (
+        <ToastContainer enableMultiContainer 
+          containerId={"invite"}
+          position="top-left"
+          autoClose={25000}
+          pauseOnFocusLoss={false}
+          pauseOnHover={false}
+        />
+      )}
+        <ToastContainer enableMultiContainer
+          containerId={"info"}
+          position="top-right"
+          autoClose={10000}
         />
         <>
           <LoadingModal 
@@ -363,7 +428,11 @@ class App extends Component {
                     )} />
                 </>
               ) : 
-              (<Game connection={this.state.gameHubConnection} />)}
+              (<Game connection={this.state.gameHubConnection} 
+                results={this.state.results} 
+                question={this.state.question}
+                timer={this.state.timer}
+                answerChoices={this.state.answerChoices} />)}
             </div>
           </main>
           <Footer />

@@ -7,13 +7,13 @@ const Footer = () => {
                 <section>
                     <div className="row">
                         <div className="col-sm p-1">
-                            <a className="btn btn-info btn-outline-warning m-2" title="Code Repository" href="#!">
+                            <a className="btn btn-info btn-outline-warning m-2" title="Code Repository" href="https://github.com/msusac/signal-to-answer" target="_blank">
                                 <i className="fa-solid fa-code-branch fa-lg text-white p-1 fw-bold"></i>
                             </a>
                             <a className="btn btn-info btn-outline-warning m-2" title="Contact" href="#!">
                                 <i className="fa-solid fa-comment-medical fa-lg text-white p-1 fw-bold"></i>
                             </a>
-                            <a className="btn btn-info btn-outline-warning m-2" title="The Trivia Api" href="#!">
+                            <a className="btn btn-info btn-outline-warning m-2" title="The Trivia Api" href="https://the-trivia-api.com" target="_blank">
                                 <i className="fa-solid fa-clipboard-question fa-lg text-white p-1 fw-bold"></i>
                             </a>
                         </div>

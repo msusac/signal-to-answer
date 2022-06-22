@@ -1,3 +1,8 @@
+export const AnswerStatus = {
+    CORRECT: 1,
+    INCORRECT: 2
+}
+
 export const GameType = {
     SOLO: { id: 1, name: "Solo Game" },
     PUBLIC: { id: 2, name: "Public Game" },
@@ -22,16 +27,16 @@ export const Roles = {
 }
 
 export const QuestionCategories = {
-    GENERAL_KNOWLEDGE: { id: 1, name: "General knowledge" },
-    LITERATURE: { id: 2, name: "Literature" },
-    HISTORY: { id: 3, name: "History" },
-    SCIENCE: { id: 4, name: "Science" },
-    MUSIC: { id: 5, name: "Music" },
-    MOVIES: { id: 6, name: "Movies" },
-    SOCIETY_CULTURE: { id: 7, name: "Society and culture" },
-    SPORT_LEISURE: { id: 8, name: "Sport and leisure" },
-    GEOGRAPHY: { id: 9, name: "Geography" },
-    FOOD_DRINK: { id: 10, name: "Food and drink" }
+    ARTS_LITERATURE: { id: 1, name: "Arts & Literature" },
+    FILM_TV: { id: 2, name: "Film & TV" },
+    FOOD_DRINK: { id: 3, name: "Food & Drink" },
+    GENERAL_KNOWLEDGE: { id: 4, name: "General knowledge" },
+    GEOGRAPHY: { id: 5, name: "Geography" },
+    HISTORY: { id: 6, name: "History" },
+    MUSIC: { id: 7, name: "Music" },
+    SCIENCE: { id: 8, name: "Science" },
+    SOCIETY_CULTURE: { id: 9, name: "Society & Culture" },
+    SPORT_LEISURE: { id: 10, name: "Sport & Leisure" },
 }
 
 export const QuestionDifficulties = {

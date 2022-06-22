@@ -39,7 +39,7 @@ namespace SignalToAnswer.Jobs
         {
             var gameIds = await _gameService.GetAllId(GameType.PRIVATE, GameStatus.WAITING_FOR_PLAYERS_TO_ACCEPT_INVITE);
 
-            foreach (var id in gameIds)
+            gameIds.ForEach(async id =>
             {
                 var game = await _gameService.GetOneQuietly(id.Value, GameStatus.WAITING_FOR_PLAYERS_TO_ACCEPT_INVITE);
 
@@ -69,7 +69,7 @@ namespace SignalToAnswer.Jobs
                         await LaunchPrivateGame(game, inviteLobby);
                     }
                 }
-            }
+            });
         }
 
         private async Task<bool> CheckIfHostIsInInviteLobby(Player host, Group inviteLobby)
@@ -143,10 +143,7 @@ namespace SignalToAnswer.Jobs
             var connections = await _connectionService.GetAll(inviteLobby.Id.Value);
             var message = string.Format("{0} / {1} players connected in invite lobby.\n Launching game when all players are connected.", connections.Count, game.MaxPlayerCount);
 
-            connections.ForEach(async c =>
-            {
-                await _presenceHubContext.Clients.User(c.UserIdentifier).SendCoreAsync("ReceivePrivateGameLoadingMessage", new object[] { message });
-            });
+            connections.ForEach(async c => await _presenceHubContext.Clients.User(c.UserIdentifier).SendCoreAsync("ReceivePrivateGameLoadingMessage", new object[] { message }));
 
             return connections.Count;
         }

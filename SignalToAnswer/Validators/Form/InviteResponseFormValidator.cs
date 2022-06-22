@@ -39,7 +39,7 @@ namespace SignalToAnswer.Validators.Form
                 throw new SignalToAnswerException("Selected Game was cancelled or not found!");
             }
 
-            var player = await _playerRepository.FindOneByGame_IdAnd_User_Id(game.Id.Value, user.Id);
+            var player = await _playerRepository.FindOneByGameIdAndUserId(game.Id.Value, user.Id);
 
             if (player == null || player.InviteStatus != InviteStatus.WAITING_TO_RESPOND)
             {

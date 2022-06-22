@@ -1,5 +1,6 @@
 import { Component } from "react"
-import { hideLoadingModal, showLoadingModal, showInfoModal, hideInfoModal } from "../App"
+import { toast } from "react-toastify"
+import { hideLoadingModal, showLoadingModal } from "../App"
 import Textbox from "../Common/Textbox"
 import api from "../services/api"
 import { isValid, onChange, validateEqualFields, validateRequired } from "../services/util"
@@ -59,18 +60,16 @@ class RegisterModal extends Component {
         try {
             await api.Account.register(body)
             hideLoadingModal()
-            showInfoModal("Your account is created. Please sign in.", false, () => {
-                hideInfoModal()
-                this.onClose()
-            })
+            toast.success("Your account has been created. Please sign in.", { containerId: "info" })
+            this.onClose()
         }
         catch (ex) {
             if (ex.type === 'api') {
                 if (ex.status === 400) {
-                    showInfoModal(ex.message, true, () => hideInfoModal())
+                    toast.error(ex.message, { containerId: "info" })
                 }
                 else if (ex.status === 500) {
-                    showInfoModal("An error has occurred", true, () => hideInfoModal())
+                    toast.error("An error has occurred!", { containerId: "info" })
                 }
             }
             else if (ex.type === 'validation') {

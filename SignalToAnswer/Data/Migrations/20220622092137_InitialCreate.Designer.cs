@@ -11,7 +11,7 @@ using SignalToAnswer.Data;
 namespace SignalToAnswer.Data.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20220528114614_InitialCreate")]
+    [Migration("20220622092137_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -21,7 +21,7 @@ namespace SignalToAnswer.Data.Migrations
 
             modelBuilder.Entity("SignalToAnswer.Entities.Answer", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int?>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER")
                         .HasColumnName("ANSWER_ID");
@@ -62,9 +62,12 @@ namespace SignalToAnswer.Data.Migrations
                         .HasColumnName("SCORE");
 
                     b.Property<string>("SelectedAnswer")
-                        .IsRequired()
                         .HasColumnType("TEXT")
                         .HasColumnName("SELECTED_ANSWER");
+
+                    b.Property<int?>("SelectedAnswerIndex")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("SELECTED_ANSWER_INDEX");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("TEXT")
@@ -225,7 +228,7 @@ namespace SignalToAnswer.Data.Migrations
 
             modelBuilder.Entity("SignalToAnswer.Entities.Match", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int?>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER")
                         .HasColumnName("MATCH_ID");
@@ -245,9 +248,11 @@ namespace SignalToAnswer.Data.Migrations
                         .HasColumnType("INTEGER")
                         .HasColumnName("GAME_ID");
 
-                    b.Property<int>("MatchStatus")
+                    b.Property<bool>("IsOngoing")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER")
-                        .HasColumnName("MATCH_STATUS");
+                        .HasDefaultValue(true)
+                        .HasColumnName("IS_ONGOING");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("TEXT")
@@ -330,10 +335,6 @@ namespace SignalToAnswer.Data.Migrations
                         .HasColumnType("VARCHAR(500)")
                         .HasColumnName("ANSWER_CHOICES");
 
-                    b.Property<int>("Attempts")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("ATTEMPTS");
-
                     b.Property<int>("Category")
                         .HasColumnType("VARCHAR(200)")
                         .HasColumnName("CATEGORY");
@@ -342,6 +343,10 @@ namespace SignalToAnswer.Data.Migrations
                         .IsRequired()
                         .HasColumnType("VARCHAR(200)")
                         .HasColumnName("CORRECT_ANSWER");
+
+                    b.Property<int>("CorrectAnswerIndex")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("CORRECT_ANSWER_INDEX");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT")
@@ -355,19 +360,27 @@ namespace SignalToAnswer.Data.Migrations
                     b.Property<int>("Difficulty")
                         .HasColumnType("INTEGER");
 
-                    b.Property<bool>("Finished")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasDefaultValue(false)
-                        .HasColumnName("IS_FINISHED");
-
                     b.Property<int>("GameId")
                         .HasColumnType("INTEGER")
                         .HasColumnName("GAME_ID");
 
+                    b.Property<bool>("IsOngoing")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true)
+                        .HasColumnName("IS_ONGOING");
+
                     b.Property<int>("MatchId")
                         .HasColumnType("INTEGER")
                         .HasColumnName("MATCH_ID");
+
+                    b.Property<int>("RemainingTime")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("REMAINING_TIME");
+
+                    b.Property<int>("Row")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("ROW");
 
                     b.Property<int>("ScoreMultiplier")
                         .HasColumnType("INTEGER")
@@ -388,7 +401,7 @@ namespace SignalToAnswer.Data.Migrations
 
             modelBuilder.Entity("SignalToAnswer.Entities.Result", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int?>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER")
                         .HasColumnName("RESULT_ID");

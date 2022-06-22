@@ -7,6 +7,8 @@ namespace SignalToAnswer.Entities
     {
         public int? Id { get; set; }
 
+        public int Row { get; set; }
+
         public int GameId { get; set; }
 
         public int MatchId { get; set; }
@@ -15,17 +17,19 @@ namespace SignalToAnswer.Entities
 
         public int Difficulty { get; set; }
 
-        public int Attempts { get; set; }
-
         public int ScoreMultiplier { get; set; }
 
         public string Description { get; set; }
 
         public string CorrectAnswer { get; set; }
 
+        public int CorrectAnswerIndex { get; set; }
+
+        public int RemainingTime { get; set; }
+
         public List<string> AnswerChoices { get; set; }
 
-        public bool Finished { get; set; }
+        public bool? IsOngoing { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 

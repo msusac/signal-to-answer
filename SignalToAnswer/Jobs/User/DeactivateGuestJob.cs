@@ -31,21 +31,21 @@ namespace SignalToAnswer.Jobs
             var users = await _userService.GetAll(RoleType.GUEST, group.Id.Value);
             var count = 0;
 
-            foreach (var user in users)
+            users.ForEach(async u =>
             {
-                var connection = await _connectionService.GetOne(user.Id);
+                var connection = await _connectionService.GetOne(u.Id);
 
-                if (DateTime.Now.Subtract(connection.UpdatedAt).Hours > 1)
+                if (DateTime.Now.Subtract(connection.UpdatedAt).Hours >= 1)
                 {
                     await _connectionService.Deactivate(connection);
-                    await _userService.Deactivate(user);
+                    await _userService.Deactivate(u);
                     count++;
                 }
-            }
+            });
 
             if (count > 0)
             {
-                _logger.LogInformation("{count} Guest account deactivated.", count);
+                _logger.LogInformation("{count} Guest account(s) deactivated.", count);
             }
         }
     }

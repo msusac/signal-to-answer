@@ -4,7 +4,6 @@ using SignalToAnswer.Entities;
 using SignalToAnswer.Repositories;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace SignalToAnswer.Services
@@ -60,19 +59,32 @@ namespace SignalToAnswer.Services
             await _playerRepository.Save(player);
         }
 
+        [Transactional]
+
+        public async Task ChangePlayerStatus(Player player, int playerStatus)
+        {
+            player.PlayerStatus = playerStatus;
+            await _playerRepository.Save(player);
+        }
+
         public async Task<List<Player>> GetAll(int gameId)
         {
-            return await _playerRepository.FindAllByGame_Id(gameId);
+            return await _playerRepository.FindAllByGameId(gameId);
+        }
+
+        public async Task<List<Player>> GetAll(int gameId, int playerStatus)
+        {
+            return await _playerRepository.FindAllByGameIdAndPlayerStatus(gameId, playerStatus);
+        }
+
+        public async Task<Player> GetOne(int id)
+        {
+            return await _playerRepository.FindOneById(id);
         }
 
         public async Task<Player> GetQuietly(int gameId, Guid userId)
         {
-            return await _playerRepository.FindOneByGame_IdAnd_User_Id(gameId, userId);
-        }
-
-        public async Task<int> GetCountQuietly(int id)
-        {
-            return (await _playerRepository.FindAllByGame_Id(id)).Count();
+            return await _playerRepository.FindOneByGameIdAndUserId(gameId, userId);
         }
     }
 }

@@ -43,6 +43,24 @@ namespace SignalToAnswer.Services
         }
 
         [Transactional]
+        public async Task<User> CreateHostBot()
+        {
+            var username = await GenerateHostBotUsername();
+
+            var guest = new User
+            {
+                Id = Guid.Empty,
+                UserName = username,
+                Password = username,
+                Role = RoleType.HOST_BOT
+            };
+
+            await _userRepository.Save(guest);
+
+            return await _userRepository.FindOneById(guest.Id);
+        }
+
+        [Transactional]
         public async Task<User> CreateUser(string username, string email, string password)
         {
             var group = await _groupService.GetOne(GroupType.OFFLINE);
@@ -60,6 +78,11 @@ namespace SignalToAnswer.Services
             await _userRepository.Save(user);
 
             return await _userRepository.FindOneById(user.Id);
+        }
+
+        public async Task<List<User>> GetAll(string roleName)
+        {
+            return await _userRepository.FindAllByRole_Name(roleName);
         }
 
         public async Task<List<User>> GetAll(string roleName, int groupId)
@@ -127,13 +150,29 @@ namespace SignalToAnswer.Services
             await _userRepository.Save(user);
         }
 
+        [Transactional]
+        public async Task DeactivateAlt(User user)
+        {
+            user.Active = false;
+            await _userRepository.SaveAlt(user);
+        }
+
         private async Task<string> GenerateGuestUsername()
         {
-            var items = await _userRepository.FindAllByRole_Name(RoleType.GUEST);
+            var items = await _userRepository.FindAllByRole_NameAndActiveExcluded(RoleType.GUEST);
 
-            var count = items.Count() + 1;
+            var count = items.Count + 1;
 
             return string.Format("GuestUser-{0}", count);
+        }
+
+        private async Task<string> GenerateHostBotUsername()
+        {
+            var items = await _userRepository.FindAllByRole_NameAndActiveExcluded(RoleType.HOST_BOT);
+
+            var count = items.Count + 1;
+
+            return string.Format("HostBotUser-{0}", count);
         }
     }
 }

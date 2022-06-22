@@ -22,9 +22,14 @@ namespace SignalToAnswer.Repositories
             return await _dataContext.Connections.Where(c => c.GroupId.Equals(groupId) && c.Active.Equals(true)).ToListAsync();
         }
 
-        public async Task<Connection> FindOneByUser_Id(Guid userId)
+        public async Task<Connection> FindOneByUserId(Guid userId)
         {
             return await _dataContext.Connections.SingleOrDefaultAsync(c => c.UserId.Equals(userId) && c.Active.Equals(true));
+        }
+
+        public async Task<Connection> FindOneByGroupIdAndUserId(int groupId, Guid userId)
+        {
+            return await _dataContext.Connections.SingleOrDefaultAsync(c => c.GroupId.Equals(groupId) && c.UserId.Equals(userId) && c.Active.Equals(true));
         }
 
         public async Task<Connection> Save(Connection connection)

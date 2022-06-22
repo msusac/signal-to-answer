@@ -1,5 +1,6 @@
 import { Component } from "react";
-import { hideLoadingModal, showLoadingModal, showInfoModal, hideInfoModal, gameHubStartConnection, isGroupType, showLoadingModalWithButton, leaveInviteLobby } from "../App";
+import { toast } from "react-toastify";
+import { hideLoadingModal, showLoadingModal, gameHubStartConnection, isGroupType, showLoadingModalWithButton, leaveInviteLobby } from "../App";
 import LiveSelect from "../Common/LiveSelect";
 import MultiSelect from "../Common/MultiSelect";
 import Range from "../Common/Range";
@@ -60,9 +61,7 @@ class CreateGameModal extends Component {
             this.setState({ userOptions: userOptions, isLiveSelectLoading: false })
         }
         catch (ex) {
-            showInfoModal("An error has occurred!", true, () => {
-                hideInfoModal()
-            })
+            toast.error("An error has occurred!", { containerId: "info" })
             this.setState({ isLiveSelectLoading: false })
         }
     }
@@ -126,10 +125,10 @@ class CreateGameModal extends Component {
         catch (ex) {
             if (ex.type === 'api') {
                 if (ex.status === 400) {
-                    showInfoModal(ex.message, true, () => hideInfoModal())
+                    toast.error(ex.message, { containerId: "info" })
                 }
                 else if (ex.status === 500) {
-                    showInfoModal("An error has occurred", true, () => hideInfoModal())
+                    toast.error("An error has occurred!", { containerId: "info" })
                 }
             }
             else if (ex.type === 'validation') {
@@ -144,7 +143,10 @@ class CreateGameModal extends Component {
     }
 
     async onCreatePrivateGame() {
-        showLoadingModalWithButton("Sending private game invite.", "Leave", () => leaveInviteLobby())
+        showLoadingModalWithButton("Sending private game invite.", "Leave", () => { 
+            leaveInviteLobby()
+            hideLoadingModal()
+        })
 
         let categories = []
         this.state.categories.forEach(c => {
@@ -164,10 +166,10 @@ class CreateGameModal extends Component {
         catch (ex) {
             if (ex.type === 'api') {
                 if (ex.status === 400) {
-                    showInfoModal(ex.message, true, () => hideInfoModal())
+                    toast.error(ex.message, { containerId: "info" })
                 }
                 else if (ex.status === 500) {
-                    showInfoModal("An error has occurred", true, () => hideInfoModal())
+                    toast.error("An error has occurred!", { containerId: "info" })
                 }
             }
             else if (ex.type === 'validation') {

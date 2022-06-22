@@ -1,5 +1,6 @@
 import { Component } from 'react';
-import { hideInfoModal, hideLoadingModal, isUserSigned, presenceHubStartConnection, setToken, setUser, showInfoModal, showLoadingModal } from '../App';
+import { toast } from 'react-toastify';
+import { hideLoadingModal, isUserSigned, presenceHubStartConnection, setToken, setUser, showLoadingModal } from '../App';
 import LoginModal from '../Modals/LoginModal';
 import RegisterModal from '../Modals/RegisterModal';
 import api from '../services/api';
@@ -33,17 +34,13 @@ class MenuNotSigned extends Component {
             const user = await api.Account.loginAsGuest()
             setUser(user)
             setToken(user.token)
+            toast.success("You are now signed as Guest!", { containerId: "info" })
+            presenceHubStartConnection()
             hideLoadingModal()
-            showInfoModal("You have successfully singed as guest!", false, () => {
-                hideInfoModal()
-                presenceHubStartConnection()
-            })
         }
         catch (ex) {
+            toast.error("An error has occurred during sign up!", { containerId: "info" })
             hideLoadingModal()
-            showInfoModal("An error has occurred during sign up!", true, () => {
-                hideInfoModal()
-            })
         }
     }
 

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using SignalToAnswer.Data;
 using SignalToAnswer.Entities;
 using System;
 using System.Collections.Generic;
@@ -10,19 +11,30 @@ namespace SignalToAnswer.Repositories
 {
     public class UserRepository
     {
+        private readonly DataContext _dataContext;
         private readonly UserManager<User> _userManager;
 
-        public UserRepository(UserManager<User> userManager)
+        public UserRepository(DataContext dataContext, UserManager<User> userManager)
         {
+            _dataContext = dataContext;
             _userManager = userManager;
         }
 
-        public async Task<IEnumerable<User>> FindAllByRole_Name(string roleName)
+        public async Task<List<User>> FindAllByRole_Name(string roleName)
         {
             return await _userManager.Users
                 .Include(u => u.UserRole)
                 .ThenInclude(ur => ur.Role)
                 .Where(u => u.UserRole.Role.Name.Equals(roleName) && u.Active.Equals(true))
+                .ToListAsync();
+        }
+
+        public async Task<List<User>> FindAllByRole_NameAndActiveExcluded(string roleName)
+        {
+            return await _userManager.Users
+                .Include(u => u.UserRole)
+                .ThenInclude(ur => ur.Role)
+                .Where(u => u.UserRole.Role.Name.Equals(roleName))
                 .ToListAsync();
         }
 
@@ -112,6 +124,24 @@ namespace SignalToAnswer.Repositories
 
                 await _userManager.UpdateAsync(user);
             }
+
+            return user;
+        }
+
+        public async Task<User> SaveAlt(User user)
+        {
+            if (user.Id.Equals(Guid.Empty))
+            {
+                await _dataContext.Users.AddAsync(user);
+            }
+            else
+            {
+                user.UpdatedAt = DateTime.Now;
+
+                _dataContext.Users.Update(user);
+            }
+
+            await _dataContext.SaveChangesAsync();
 
             return user;
         }

@@ -20,28 +20,38 @@ namespace SignalToAnswer.Mappers.Dtos
             _difficultyRepository = difficultyRepository;
         }
 
-        public async Task<Question> Map(TAQuestion taQuestion)
+        public async Task<Question> Map(TAQuestion taQuestion, Game game, Match match, int row)
         {
             var question = new Question
             {
-                Category = await GetCategory(taQuestion.Category),
+                Row = row,
                 CorrectAnswer = GetCorrectAnswer(taQuestion.CorrectAnswer),
                 Description = taQuestion.Question,
-                Difficulty = await GetDifficulty(taQuestion.Difficulty)
+                Difficulty = await GetDifficulty(taQuestion.Difficulty),
+                Category = await GetCategory(taQuestion.Category),
+                Game = game,
+                GameId = game.Id.Value,
+                Match = match,
+                MatchId = match.Id.Value
             };
 
             question.AnswerChoices = GetAnswerChoices(taQuestion.IncorrectAnswers, question.CorrectAnswer);
-            question.Attempts = GetAttempts(question.Difficulty);
             question.ScoreMultiplier = GetScoreMultiplier(question.Difficulty);
+            question.CorrectAnswerIndex = GetCorrectAnswerIndex(question.CorrectAnswer, question.AnswerChoices);
             
             return question;
         }
 
-        public List<Question> Map(List<TAQuestion> taQuestions)
+        public List<Question> Map(List<TAQuestion> taQuestions, Game game, Match match)
         {
-            List<Question> questionList = new();
+            var row = 0;
+            var questionList = new List<Question>();
 
-            taQuestions.ForEach(async q => questionList.Add(await Map(q)));
+            taQuestions.ForEach(async q => {
+                row++;
+                
+                questionList.Add(await Map(q, game, match, row));
+            });
 
             return questionList;
         }
@@ -49,7 +59,7 @@ namespace SignalToAnswer.Mappers.Dtos
         private List<string> GetAnswerChoices(List<string> incorrectAnswers, string correctAnswer)
         {
             var answers = new List<string>();
-            incorrectAnswers.Take(5).ToList().ForEach(q => answers.Add(q.Trim()));
+            incorrectAnswers.ToList().ForEach(q => answers.Add(q.Trim()));
             answers.Add(correctAnswer);
 
             var rand = new Random();
@@ -58,7 +68,8 @@ namespace SignalToAnswer.Mappers.Dtos
 
         private async Task<int> GetCategory(string category)
         {
-            return (await _categoryRepository.FindOneByNameUpper(category)).Id.Value;
+            var cat = await _categoryRepository.FindOneByName(category);
+            return cat.Id.Value;
         }
 
         private string GetCorrectAnswer(string correctAnswer)
@@ -66,19 +77,14 @@ namespace SignalToAnswer.Mappers.Dtos
             return correctAnswer.Trim();
         }
 
-        private async Task<int> GetDifficulty(string difficulty)
+        private int GetCorrectAnswerIndex(string correctAnswer, List<string> answers)
         {
-            return (await _difficultyRepository.FindOneByNameUpper(difficulty)).Id.Value;
+            return answers.FindIndex(a => a.Equals(correctAnswer));
         }
 
-        private int GetAttempts(int difficulty)
+        private async Task<int> GetDifficulty(string difficulty)
         {
-            if (difficulty == QuestionDifficulty.EASY)
-            {
-                return 1;
-            }
-
-            return 2;
+            return (await _difficultyRepository.FindOneByParamUpper(difficulty)).Id.Value;
         }
 
         private int GetScoreMultiplier(int difficulty)
@@ -87,7 +93,7 @@ namespace SignalToAnswer.Mappers.Dtos
             {
                 return 2;
             }
-            else if (difficulty < QuestionDifficulty.HARD)
+            else if (difficulty == QuestionDifficulty.HARD)
             {
                 return 3;
             }
