@@ -17,14 +17,26 @@ namespace SignalToAnswer.Repositories
             _dataContext = dataContext;
         }
 
-        public async Task<List<Player>> FindAllByGame_Id(int gameId)
+        public async Task<List<Player>> FindAllByGameId(int gameId)
         {
             return await _dataContext.Players
                 .Where(p => p.GameId.Equals(gameId) && p.Active.Equals(true))
                 .ToListAsync();
         }
 
-        public async Task<Player> FindOneByGame_IdAnd_User_Id(int gameId, Guid userId)
+        public async Task<List<Player>> FindAllByGameIdAndPlayerStatus(int gameId, int playerStatus)
+        {
+            return await _dataContext.Players
+               .Where(p => p.GameId.Equals(gameId) && p.PlayerStatus.Equals(playerStatus) && p.Active.Equals(true))
+               .ToListAsync();
+        }
+
+        public async Task<Player> FindOneById(int id)
+        {
+            return await _dataContext.Players.SingleOrDefaultAsync(p => p.Id.Equals(id) && p.Active.Equals(true));
+        }
+
+        public async Task<Player> FindOneByGameIdAndUserId(int gameId, Guid userId)
         {
             return await _dataContext.Players
                 .SingleOrDefaultAsync(p => p.GameId.Equals(gameId) && p.UserId.Equals(userId) && p.Active.Equals(true));

@@ -15,7 +15,7 @@ namespace SignalToAnswer.Repositories
             _dataContext = dataContext;
         }
 
-        public async Task<Role> FindOneByUser_Id(Guid userId)
+        public async Task<Role> FindOneByUserId(Guid userId)
         {
             var userRole = await _dataContext.UserRoles.SingleOrDefaultAsync(ur => ur.UserId.Equals(userId) && ur.Active.Equals(true));
 

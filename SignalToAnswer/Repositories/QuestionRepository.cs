@@ -16,6 +16,14 @@ namespace SignalToAnswer.Repositories
             _dataContext = dataContext;
         }
 
+        public async Task<Question> FindOneByGameIdAndMatchIdAndIsOngoingOrderedByRowIdAsc(int gameId, int matchId)
+        {
+            return await _dataContext.Questions.Where(q => q.GameId.Equals(gameId) && q.MatchId.Equals(matchId)
+                && q.IsOngoing.Equals(true) && q.Active.Equals(true))
+                .OrderBy(q => q.Row)
+                .FirstOrDefaultAsync();
+        }
+
         public async Task<Question> Save(Question question)
         {
             if (question.Id == null)
