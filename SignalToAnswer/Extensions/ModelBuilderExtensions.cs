@@ -37,8 +37,10 @@ namespace SignalToAnswer.Extensions
                 .IsRequired();
 
                 b.Property(a => a.SelectedAnswer)
-                .HasColumnName("SELECTED_ANSWER")
-                .IsRequired();
+                .HasColumnName("SELECTED_ANSWER");
+
+                b.Property(a => a.SelectedAnswerIndex)
+                .HasColumnName("SELECTED_ANSWER_INDEX");
 
                 b.Property(a => a.IsCorrectAnswer)
                 .HasColumnName("IS_CORRECT_ANSWER")
@@ -245,8 +247,9 @@ namespace SignalToAnswer.Extensions
                 .HasColumnName("GAME_ID")
                 .IsRequired();
 
-                b.Property(m => m.MatchStatus)
-                .HasColumnName("MATCH_STATUS")
+                b.Property(m => m.IsOngoing)
+                .HasColumnName("IS_ONGOING")
+                .HasDefaultValue(true)
                 .IsRequired();
 
                 b.Property(m => m.CreatedAt)
@@ -346,6 +349,10 @@ namespace SignalToAnswer.Extensions
                 .HasColumnName("QUESTION_ID")
                 .IsRequired();
 
+                b.Property(q => q.Row)
+                .HasColumnName("ROW")
+                .IsRequired();
+
                 b.Property(q => q.GameId)
                 .HasColumnName("GAME_ID")
                 .IsRequired();
@@ -357,10 +364,6 @@ namespace SignalToAnswer.Extensions
                 b.Property(q => q.Category)
                 .HasColumnName("CATEGORY")
                 .HasColumnType("VARCHAR(200)")
-                .IsRequired();
-
-                b.Property(q => q.Attempts)
-                .HasColumnName("ATTEMPTS")
                 .IsRequired();
 
                 b.Property(q => q.ScoreMultiplier)
@@ -377,6 +380,14 @@ namespace SignalToAnswer.Extensions
                 .HasColumnType("VARCHAR(200)")
                 .IsRequired();
 
+                b.Property(q => q.CorrectAnswerIndex)
+                .HasColumnName("CORRECT_ANSWER_INDEX")
+                .IsRequired();
+
+                b.Property(q => q.RemainingTime)
+                .HasColumnName("REMAINING_TIME")
+                .IsRequired();
+
                 b.Property(q => q.AnswerChoices)
                 .HasColumnName("ANSWER_CHOICES")
                 .HasColumnType("VARCHAR(500)")
@@ -386,9 +397,9 @@ namespace SignalToAnswer.Extensions
                     q => JsonConvert.DeserializeObject<List<string>>(q)
                 );
 
-                b.Property(g => g.Finished)
-                .HasColumnName("IS_FINISHED")
-                .HasDefaultValue(false)
+                b.Property(g => g.IsOngoing)
+                .HasColumnName("IS_ONGOING")
+                .HasDefaultValue(true)
                 .IsRequired();
 
                 b.Property(q => q.CreatedAt)
