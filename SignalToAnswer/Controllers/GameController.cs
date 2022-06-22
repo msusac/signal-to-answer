@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SignalToAnswer.Extensions;
-using SignalToAnswer.Facades;
+using SignalToAnswer.Facades.Hubs;
 using SignalToAnswer.Form;
 using System.Threading.Tasks;
 
