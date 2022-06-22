@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using SignalToAnswer.Exceptions;
 using SignalToAnswer.Integrations.TriviaApi.Exceptions;
+using System;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -74,6 +75,19 @@ namespace SignalToAnswer.Middleware
                 httpContext.Response.StatusCode = statusCode;
 
                 var response = new ApiException(statusCode, ex.Message, ex.ValidationErrors);
+
+                await WriteAsync(response, httpContext);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+
+                var statusCode = (int)HttpStatusCode.BadRequest;
+
+                httpContext.Response.ContentType = "application/json";
+                httpContext.Response.StatusCode = statusCode;
+
+                var response = new ApiException(statusCode, ex.Message);
 
                 await WriteAsync(response, httpContext);
             }
