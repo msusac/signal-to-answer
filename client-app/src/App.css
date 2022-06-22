@@ -10,10 +10,6 @@
     display: none !important;
 }
 
-.modal-info {
-    z-index: 9999 !important;
-}
-
 .modal-loading {
     z-index: 9998 !important;
 }

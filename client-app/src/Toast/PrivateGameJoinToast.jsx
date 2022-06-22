@@ -1,5 +1,6 @@
 import { Component } from "react";
-import { hideInfoModal, hideLoadingModal, leaveInviteLobby, showInfoModal, showLoadingModalWithButton } from "../App";
+import { toast } from "react-toastify";
+import { hideLoadingModal, leaveInviteLobby, showLoadingModalWithButton } from "../App";
 import api from "../services/api";
 
 class PrivateGameJoinToast extends Component {
@@ -11,7 +12,10 @@ class PrivateGameJoinToast extends Component {
 
     async onSubmit(isAccepted) {
         if (isAccepted) {
-            showLoadingModalWithButton("Joining private game...", "Leave", () => leaveInviteLobby())
+            showLoadingModalWithButton("Joining private game...", "Leave", () => { 
+                leaveInviteLobby()
+                hideLoadingModal()
+            })
         }
 
         const body = {
@@ -24,8 +28,8 @@ class PrivateGameJoinToast extends Component {
             await api.Game.respondToPrivateGameInvite(body)
         }
         catch (ex) {
+            toast.error(ex.message, { containerId: "info" })
             hideLoadingModal()
-            showInfoModal(ex.message, true, () => hideInfoModal())
         }
     }
 

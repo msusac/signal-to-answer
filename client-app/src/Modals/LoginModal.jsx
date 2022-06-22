@@ -1,5 +1,6 @@
 import { Component } from "react"
-import { hideLoadingModal, showLoadingModal, setUser, setToken, presenceHubStartConnection, showInfoModal, hideInfoModal } from "../App"
+import { toast } from "react-toastify"
+import { hideLoadingModal, showLoadingModal, setUser, setToken, presenceHubStartConnection } from "../App"
 import Textbox from "../Common/Textbox"
 import api from "../services/api"
 import { isValid, onChange, validateRequired } from "../services/util"
@@ -61,10 +62,10 @@ class LoginModal extends Component {
         catch (ex) {
             if (ex.type === 'api') {
                 if (ex.status === 400) {
-                    showInfoModal(ex.message, true, () => hideInfoModal())
+                    toast.error(ex.message, { containerId: "info" });
                 }
                 else if (ex.status === 500) {
-                    showInfoModal("An error has occurred", true, () => hideInfoModal())
+                    toast.error("An error has occurred!", { containerId: "info" })
                 }
             }
             hideLoadingModal()
