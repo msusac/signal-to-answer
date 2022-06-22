@@ -75,9 +75,26 @@ namespace SignalToAnswer.Services
             return await _gameRepository.FindAllByGameTypeAndGameStatus(gameType, gameStatus);
         }
 
+        public async Task<List<int?>> GetAllId(int gameStatus)
+        {
+            return await _gameRepository.FindAllIdByGameStatus(gameStatus);
+        }
+
         public async Task<List<int?>> GetAllId(int gameType, int gameStatus)
         {
             return await _gameRepository.FindAllIdByGameTypeAndGameStatus(gameType, gameStatus);
+        }
+
+        public async Task<Game> GetOne(int gameId)
+        {
+            var game = await _gameRepository.FindOneById(gameId);
+
+            if (game == null)
+            {
+                throw new SignalToAnswerException("Selected game does not exist!");
+            }
+
+            return game;
         }
 
         public async Task<Game> GetOne(int gameId, int gameStatus)
@@ -95,6 +112,12 @@ namespace SignalToAnswer.Services
         public async Task<Game> GetOneQuietly(int gameId, int gameStatus)
         {
             return await _gameRepository.FindOneByIdAndGameStatus(gameId, gameStatus);
+        }
+
+        public async Task<int> GetStatus(int gameId)
+        {
+            var game = await GetOne(gameId);
+            return game.GameStatus;
         }
 
         [Transactional]

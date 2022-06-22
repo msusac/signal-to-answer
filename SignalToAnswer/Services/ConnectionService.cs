@@ -37,7 +37,19 @@ namespace SignalToAnswer.Services
 
         public async Task<Connection> GetOne(Guid userId)
         {
-            var connection = await _connectionRepository.FindOneByUser_Id(userId);
+            var connection = await _connectionRepository.FindOneByUserId(userId);
+
+            if (connection == null)
+            {
+                throw new EntryPointNotFoundException("Selected connection does not exist!");
+            }
+
+            return connection;
+        }
+
+        public async Task<Connection> GetOne(int groupId, Guid userId)
+        {
+            var connection = await _connectionRepository.FindOneByGroupIdAndUserId(groupId, userId);
 
             if (connection == null)
             {

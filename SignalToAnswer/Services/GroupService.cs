@@ -20,7 +20,7 @@ namespace SignalToAnswer.Services
         {
             var group = new Group
             {
-                GroupName = "IN_GAME_SOLO_" + game.Id,
+                GroupName = string.Format("IN_GAME_SOLO_{0}", game.Id),
                 GroupType = GroupType.IN_GAME_SOLO,
                 IsUnique = false
             };
@@ -32,7 +32,7 @@ namespace SignalToAnswer.Services
         {
             var group = new Group
             {
-                GroupName = "IN_GAME_PUBLIC_" + game.Id,
+                GroupName = string.Format("IN_GAME_PUBLIC_{0}", game.Id),
                 GroupType = GroupType.IN_GAME_PUBLIC,
                 IsUnique = false
             };
@@ -44,7 +44,7 @@ namespace SignalToAnswer.Services
         {
             var group = new Group
             {
-                GroupName = "IN_GAME_PRIVATE_" + game.Id,
+                GroupName = string.Format("IN_GAME_PRIVATE_{0}", game.Id),
                 GroupType = GroupType.IN_GAME_PRIVATE,
                 IsUnique = false
             };
@@ -56,7 +56,7 @@ namespace SignalToAnswer.Services
         {
             var group = new Group
             {
-                GroupName = "INVITE_LOBBY_" + game.Id,
+                GroupName = string.Format("INVITE_LOBBY_{0}", game.Id),
                 GroupType = GroupType.INVITE_LOBBY,
                 IsUnique = false
             };
@@ -74,6 +74,36 @@ namespace SignalToAnswer.Services
             }
 
             return group;
+        }
+
+        public async Task<Group> GetOneInGame(int id, int gameType)
+        {
+            var inGroupType = GetInGameType(gameType);
+
+            var group = await _groupRepository.FindOneByGroupName(inGroupType + id);
+
+            if (group == null)
+            {
+                throw new EntityNotFoundException("Selected group does not exist!");
+            }
+
+            return group;
+        }
+
+        private string GetInGameType(int gameType)
+        {
+            var inGameType= "IN_GAME_SOLO_";
+
+            if (gameType == GameType.PUBLIC)
+            {
+                inGameType = "IN_GAME_PUBLIC_";
+            }
+            else if (gameType == GameType.PRIVATE)
+            {
+                inGameType = "IN_GAME_PRIVATE_";
+            }
+
+            return inGameType;
         }
 
         public async Task<Group> GetOneInviteLobby(int id)
