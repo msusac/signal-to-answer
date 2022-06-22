@@ -19,9 +19,9 @@ namespace SignalToAnswer.Integrations.TriviaApi.Repositories
             return await _dataContext.TAQuestionDifficulty.SingleOrDefaultAsync(d => d.Id.Equals(id));
         }
 
-        public async Task<TAQuestionDifficulty> FindOneByNameUpper(string name)
+        public async Task<TAQuestionDifficulty> FindOneByParamUpper(string param)
         {
-            return await _dataContext.TAQuestionDifficulty.SingleOrDefaultAsync(d => d.Name.ToUpper().Equals(name.ToUpper()));
+            return await _dataContext.TAQuestionDifficulty.SingleOrDefaultAsync(d => d.Param.ToUpper().Equals(param.ToUpper()));
         }
     }
 }

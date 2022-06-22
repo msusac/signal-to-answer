@@ -12,7 +12,7 @@ namespace SignalToAnswer.Integrations.TriviaApi.Services
 {
     public class TAService
     {
-        private const string BaseUrl = "https://api.trivia.willfry.co.uk/questions?";
+        private const string BaseUrl = "https://the-trivia-api.com/api/questions?";
 
         private readonly HttpClient _httpClient;
         private readonly TARequestMapper _taRequestMapper;
@@ -25,11 +25,11 @@ namespace SignalToAnswer.Integrations.TriviaApi.Services
             _questionMapper = questionMapper;
         }
 
-        public async Task<List<Question>> RetrieveQuestions(Game game)
+        public async Task<List<Question>> RetrieveQuestions(Game game, Match match)
         {
-            var request = _taRequestMapper.Map(game);
+            var request = await _taRequestMapper.Map(game);
 
-            var httpResponse = await _httpClient.GetAsync(BaseUrl + request);
+            var httpResponse = await _httpClient.GetAsync(BaseUrl + request.GetParameter());
 
             if (!httpResponse.IsSuccessStatusCode)
             {
@@ -38,7 +38,7 @@ namespace SignalToAnswer.Integrations.TriviaApi.Services
 
             var content = await httpResponse.Content.ReadAsStringAsync();
 
-            return _questionMapper.Map(JsonConvert.DeserializeObject<List<TAQuestion>>(content));
+            return _questionMapper.Map(JsonConvert.DeserializeObject<List<TAQuestion>>(content), game, match);
         }
     }
 }
