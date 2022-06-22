@@ -5,11 +5,11 @@ namespace SignalToAnswer.Entities
 {
     public class Match
     {
-        public int Id { get; set; }
+        public int? Id { get; set; }
 
         public int GameId { get; set; }
 
-        public int MatchStatus { get; set; }
+        public bool? IsOngoing { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 

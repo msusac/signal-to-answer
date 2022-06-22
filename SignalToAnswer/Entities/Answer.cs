@@ -4,7 +4,7 @@ namespace SignalToAnswer.Entities
 {
     public class Answer
     {
-        public int Id { get; set; }
+        public int? Id { get; set; }
 
         public int GameId { get; set; }
 
@@ -15,6 +15,8 @@ namespace SignalToAnswer.Entities
         public int QuestionId { get; set; }
 
         public string SelectedAnswer { get; set; }
+
+        public int? SelectedAnswerIndex { get; set; }
 
         public bool IsCorrectAnswer { get; set; }
 
