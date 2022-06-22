@@ -117,7 +117,7 @@ namespace SignalToAnswer.Data.Migrations
                     MATCH_ID = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     GAME_ID = table.Column<int>(type: "INTEGER", nullable: false),
-                    MATCH_STATUS = table.Column<int>(type: "INTEGER", nullable: false),
+                    IS_ONGOING = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: true),
                     CREATED_AT = table.Column<DateTime>(type: "TEXT", nullable: false),
                     UPDATED_AT = table.Column<DateTime>(type: "TEXT", nullable: false),
                     ACTIVE = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: true)
@@ -228,16 +228,18 @@ namespace SignalToAnswer.Data.Migrations
                 {
                     QUESTION_ID = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
+                    ROW = table.Column<int>(type: "INTEGER", nullable: false),
                     GAME_ID = table.Column<int>(type: "INTEGER", nullable: false),
                     MATCH_ID = table.Column<int>(type: "INTEGER", nullable: false),
                     CATEGORY = table.Column<int>(type: "VARCHAR(200)", nullable: false),
                     Difficulty = table.Column<int>(type: "INTEGER", nullable: false),
-                    ATTEMPTS = table.Column<int>(type: "INTEGER", nullable: false),
                     SCORE_MULTIPLIER = table.Column<int>(type: "INTEGER", nullable: false),
                     DESCRIPTION = table.Column<string>(type: "VARCHAR(500)", nullable: false),
                     CORRECT_ANSWER = table.Column<string>(type: "VARCHAR(200)", nullable: false),
+                    CORRECT_ANSWER_INDEX = table.Column<int>(type: "INTEGER", nullable: false),
+                    REMAINING_TIME = table.Column<int>(type: "INTEGER", nullable: false),
                     ANSWER_CHOICES = table.Column<string>(type: "VARCHAR(500)", nullable: false),
-                    IS_FINISHED = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
+                    IS_ONGOING = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: true),
                     CREATED_AT = table.Column<DateTime>(type: "TEXT", nullable: false),
                     UPDATED_AT = table.Column<DateTime>(type: "TEXT", nullable: false),
                     ACTIVE = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: true)
@@ -308,7 +310,8 @@ namespace SignalToAnswer.Data.Migrations
                     MATCH_ID = table.Column<int>(type: "INTEGER", nullable: false),
                     PLAYER_ID = table.Column<int>(type: "INTEGER", nullable: false),
                     QUESTION_ID = table.Column<int>(type: "INTEGER", nullable: false),
-                    SELECTED_ANSWER = table.Column<string>(type: "TEXT", nullable: false),
+                    SELECTED_ANSWER = table.Column<string>(type: "TEXT", nullable: true),
+                    SELECTED_ANSWER_INDEX = table.Column<int>(type: "INTEGER", nullable: true),
                     IS_CORRECT_ANSWER = table.Column<bool>(type: "INTEGER", nullable: false),
                     SCORE = table.Column<int>(type: "INTEGER", nullable: false),
                     CREATED_AT = table.Column<DateTime>(type: "TEXT", nullable: false),
