@@ -43,7 +43,8 @@ namespace SignalToAnswer.Data
             var roles = new List<Role>
             {
                 new Role{ Name = "GUEST" },
-                new Role{ Name = "USER" }
+                new Role{ Name = "USER" },
+                new Role{ Name = "HOST_BOT" }
             };
 
             roles.ForEach(async r => await roleManager.CreateAsync(r));
@@ -95,16 +96,16 @@ namespace SignalToAnswer.Data
 
             var categories = new List<TAQuestionCategory>
             {
+                new TAQuestionCategory("Arts & Literature", "arts_and_literature"),
+                new TAQuestionCategory("Film & TV", "films_and_tv"),
+                new TAQuestionCategory("Food & Drink", "food_and_drink"),
                 new TAQuestionCategory("General Knowledge", "general_knowledge"),
-                new TAQuestionCategory("Literature", "literature"),
-                new TAQuestionCategory("History", "history"),
-                new TAQuestionCategory("Science", "science"),
-                new TAQuestionCategory("Music", "music"),
-                new TAQuestionCategory("Movies", "movies"),
-                new TAQuestionCategory("Society and culture", "society_and_culture"),
-                new TAQuestionCategory("Sport and leisure", "sport_and_leisure"),
                 new TAQuestionCategory("Geography", "geography"),
-                new TAQuestionCategory("Food and drink", "food_and_drink")
+                new TAQuestionCategory("History", "history"),
+                new TAQuestionCategory("Music", "music"),
+                new TAQuestionCategory("Science", "science"),
+                new TAQuestionCategory("Society & Culture", "society_and_culture"),
+                new TAQuestionCategory("Sport & Leisure", "sport_and_leisure")
             };
 
             categories.ForEach(async c => await dataContext.TAQuestionCategories.AddAsync(c));
@@ -121,9 +122,9 @@ namespace SignalToAnswer.Data
 
             var difficulties = new List<TAQuestionDifficulty>
             {
-              new TAQuestionDifficulty("EASY", "easy"),
-              new TAQuestionDifficulty("MEDIUM", "medium"),
-              new TAQuestionDifficulty("HARD", "hard")
+              new TAQuestionDifficulty("easy", "easy"),
+              new TAQuestionDifficulty("medium", "medium"),
+              new TAQuestionDifficulty("hard", "hard")
             };
 
             difficulties.ForEach(async d => await dataContext.TAQuestionDifficulty.AddAsync(d));
