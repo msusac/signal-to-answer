@@ -12,6 +12,7 @@
         public static readonly int GAME_IN_PROGRESS = 8;
         public static readonly int GAME_END = 9;
         public static readonly int PLAYER_DISCONNECTED = 10;
-        public static readonly int CANCELLED = 11;
+        public static readonly int PLAYER_DISCONNECTED_DURING_GAME = 11;
+        public static readonly int CANCELLED = 12;
     }
 }

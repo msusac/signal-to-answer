@@ -37,10 +37,18 @@ namespace SignalToAnswer.Services
             return await _matchRepository.FindOneByGameIdAndIsOngoingTrueOrderedByCreatedAtDesc(gameId);
         }
 
-        public async Task<Match> Deactivate(Match match)
+        [Transactional]
+        public async Task MarkAsComplete(Match match)
+        {
+            match.IsOngoing = false;
+            await _matchRepository.Save(match);
+        }
+
+        [Transactional]
+        public async Task Deactivate(Match match)
         {
             match.Active = false;
-            return await _matchRepository.Save(match);
+            await _matchRepository.Save(match);
         }
     }
 }

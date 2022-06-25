@@ -246,7 +246,8 @@ namespace SignalToAnswer.Data.Migrations
                         .HasColumnType("INTEGER")
                         .HasColumnName("GAME_ID");
 
-                    b.Property<bool>("IsOngoing")
+                    b.Property<bool?>("IsOngoing")
+                        .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER")
                         .HasDefaultValue(true)
@@ -362,7 +363,8 @@ namespace SignalToAnswer.Data.Migrations
                         .HasColumnType("INTEGER")
                         .HasColumnName("GAME_ID");
 
-                    b.Property<bool>("IsOngoing")
+                    b.Property<bool?>("IsOngoing")
+                        .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER")
                         .HasDefaultValue(true)
@@ -419,10 +421,6 @@ namespace SignalToAnswer.Data.Migrations
                         .HasColumnType("INTEGER")
                         .HasColumnName("GAME_ID");
 
-                    b.Property<bool>("IsWinner")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("IS_WINNER");
-
                     b.Property<int>("MatchId")
                         .HasColumnType("INTEGER")
                         .HasColumnName("MATCH_ID");
@@ -442,6 +440,12 @@ namespace SignalToAnswer.Data.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("TEXT")
                         .HasColumnName("UPDATED_AT");
+
+                    b.Property<int>("WinnerStatus")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0)
+                        .HasColumnName("WINNER_STATUS");
 
                     b.HasKey("Id");
 

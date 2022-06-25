@@ -5,7 +5,7 @@ namespace SignalToAnswer.Mappers.Dtos.GameHub
 {
     public class QuestionInfoDtoMapper
     {
-        public QuestionInfoDto Map(Question question, int totalRows)
+        public QuestionInfoDto Map(Question question, int totalRows, bool showCorrectanswer)
         {
             var dto = new QuestionInfoDto
             {
@@ -16,6 +16,11 @@ namespace SignalToAnswer.Mappers.Dtos.GameHub
                 Difficulty = question.Difficulty,
                 ScoreMultiplier = question.ScoreMultiplier,
             };
+
+            if (showCorrectanswer)
+            {
+                dto.CorrectAnswer = question.CorrectAnswer;
+            }
 
             return dto;
         }

@@ -271,7 +271,7 @@ namespace SignalToAnswer.Data.Migrations
                     MATCH_ID = table.Column<int>(type: "INTEGER", nullable: false),
                     PLAYER_ID = table.Column<int>(type: "INTEGER", nullable: false),
                     TOTAL_SCORE = table.Column<int>(type: "INTEGER", nullable: false),
-                    IS_WINNER = table.Column<bool>(type: "INTEGER", nullable: false),
+                    WINNER_STATUS = table.Column<int>(type: "INTEGER", nullable: false, defaultValue: 0),
                     NOTE = table.Column<string>(type: "TEXT", nullable: true),
                     CREATED_AT = table.Column<DateTime>(type: "TEXT", nullable: false),
                     UPDATED_AT = table.Column<DateTime>(type: "TEXT", nullable: false),

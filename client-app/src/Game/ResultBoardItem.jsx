@@ -1,4 +1,5 @@
-import { AnswerStatus } from "../services/contants"
+import { AnswerStatus, WinnerStatus } from "../services/contants"
+import { isNotNil } from "../services/util"
 
 const ResultBoardItem = (props) => {
 
@@ -35,9 +36,21 @@ const ResultBoardItem = (props) => {
              <div className="card-footer text-center bg-white">
                 <h3 className="text-secondary">{result.score}</h3>
              </div>
-             <div className="card-footer text-center bg-white">
-                <h3 className={`${currentAnswerStyle}`}>{currentAnswerText}</h3>
-             </div>
+             {(isNotNil(result.currentAnswerStatus)) && (
+                <div className="card-footer text-center bg-white">
+                    <h3 className={`${currentAnswerStyle}`}>{currentAnswerText}</h3>
+                </div>
+             )}
+             {((isNotNil(result.winnerStatus)) && (result.winnerStatus > 0)) && (
+                <div className="card-footer text-center bg-white">
+                    <h3 className='text-secondary'>{Object.values(WinnerStatus).find(w => w.id === result.winnerStatus).name}</h3>
+                </div>
+             )}
+            {(isNotNil(result.note)) && (
+                <div className="card-footer text-center bg-white">
+                    <h3 className='text-secondary'>{result.note}</h3>
+                </div>
+            )}
         </div>
     )
 }

@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Logging;
 using SignalToAnswer.Attributes;
 using SignalToAnswer.Constants;
+using SignalToAnswer.Dtos;
 using SignalToAnswer.Dtos.GameHub;
 using SignalToAnswer.Entities;
 using SignalToAnswer.Exceptions;
@@ -31,6 +31,8 @@ namespace SignalToAnswer.Hubs
         public Task ReceiveTimerInfo(int time);
 
         public Task ReceiveGameCancelled(string message);
+
+        public Task ReceiveEndGameInfo(EndGameInfoDto dto);
     }
 
     [Transactional]
@@ -86,10 +88,30 @@ namespace SignalToAnswer.Hubs
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
-            var game = await _gameService.GetOne(Context.GetGameId());
             var user = await _userService.GetOne(Context.GetUsername());
-            
+
+            if (!IsUserHostBot(user))
+            {
+                var game = await _gameService.GetOne(Context.GetGameId());
+
+                var match = await _matchService.GetOneLatest(game.Id.Value);
+                var player = await _playerService.GetQuietly(game.Id.Value, user.Id);
+                var question = await _questionService.GetOneCurrentQuietly(game.Id.Value, match.Id.Value);
+
+                if (game.GameStatus == GameStatus.GAME_IN_PROGRESS && question != null)
+                {
+                    await _playerService.ChangePlayerStatus(player, PlayerStatus.DISCONNECTED_DURING_GAME);
+                    await _gameService.ChangeStatus(game, GameStatus.PLAYER_DISCONNECTED_DURING_GAME);
+                }
+                else
+                {
+                    await _playerService.ChangePlayerStatus(player, PlayerStatus.DISCONNECTED);
+                    await _playerService.ChangePlayerStatus(player, GameStatus.PLAYER_DISCONNECTED);
+                }
+            }
+
             await base.OnDisconnectedAsync(exception);
+
         }
 
         public async Task LaunchGame(int gameId)
@@ -101,7 +123,7 @@ namespace SignalToAnswer.Hubs
             await PrepareQuestions(game);
             await ReadyForGame(game);
             await GameInProgress(game);
-            await ManageGame(game);
+            await EndGame(game);
         }
 
         [HubMethodName("AnswerQuestion")]
@@ -173,13 +195,14 @@ namespace SignalToAnswer.Hubs
 
         private async Task PrepareMatch(Game game)
         {
-            var status = await _gameService.GetStatus(game.Id.Value);
+            var status = await _gameService.GetStatusNoTracking(game.Id.Value);
 
             if (await CheckIfAllUsersAreInGame(game) && status == GameStatus.PLAYERS_CONNECTED)
             {
                 await SendLoadingMessageToAllUsers(game, "Creating match...");
                 await _matchService.CreateMatch(game);
                 await _gameService.ChangeStatus(game, GameStatus.MATCH_CREATED);
+                await Task.Delay(550);
             }
             else
             {
@@ -189,14 +212,17 @@ namespace SignalToAnswer.Hubs
 
         private async Task PrepareResults(Game game)
         {
-            var status = await _gameService.GetStatus(game.Id.Value);
+            var status = await _gameService.GetStatusNoTracking(game.Id.Value);
 
             if (await CheckIfAllUsersAreInGame(game) && status == GameStatus.MATCH_CREATED)
             {
                 await SendLoadingMessageToAllUsers(game, "Creating result board...");
+
                 var match = await _matchService.GetOneLatest(game.Id.Value);
+
                 await _resultService.CreateResults(game, match);
                 await _gameService.ChangeStatus(game, GameStatus.RESULT_BOARD_CREATED);
+                await Task.Delay(550);
             }
             else
             {
@@ -207,14 +233,16 @@ namespace SignalToAnswer.Hubs
 
         private async Task PrepareQuestions(Game game)
         {
-            var status = await _gameService.GetStatus(game.Id.Value);
+            var status = await _gameService.GetStatusNoTracking(game.Id.Value);
 
             if (await CheckIfAllUsersAreInGame(game) && status == GameStatus.RESULT_BOARD_CREATED)
             {
                 await SendLoadingMessageToAllUsers(game, "Fetching questions...");
                 var match = await _matchService.GetOneLatest(game.Id.Value);
+
                 await _questionService.CreateQuestions(game, match);
                 await _gameService.ChangeStatus(game, GameStatus.QUESTIONS_CREATED);
+                await Task.Delay(550);
             }
             else
             {
@@ -224,12 +252,13 @@ namespace SignalToAnswer.Hubs
 
         private async Task ReadyForGame(Game game)
         {
-            var status = await _gameService.GetStatus(game.Id.Value);
+            var status = await _gameService.GetStatusNoTracking(game.Id.Value);
 
             if (await CheckIfAllUsersAreInGame(game) && status == GameStatus.QUESTIONS_CREATED)
             {
                 await SendLoadingMessageToAllUsers(game, "Ready for game...");
                 await _gameService.ChangeStatus(game, GameStatus.READY_FOR_GAME);
+                await Task.Delay(550);
             }
             else
             {
@@ -239,7 +268,7 @@ namespace SignalToAnswer.Hubs
 
         private async Task GameInProgress(Game game)
         {
-            var status = await _gameService.GetStatus(game.Id.Value);
+            var status = await _gameService.GetStatusNoTracking(game.Id.Value);
 
             if (await CheckIfAllUsersAreInGame(game) && status == GameStatus.READY_FOR_GAME)
             {
@@ -261,7 +290,7 @@ namespace SignalToAnswer.Hubs
 
             do
             {
-                await SendResultInfoToAllUsers(game, match);
+                await SendResultInfoToAllUsers(game, match, false);
                 await SendQuestionInfoToAllUsers(game, question, false);
                 await SendAnswerChoiceToAllUsers(game, question);
 
@@ -274,7 +303,7 @@ namespace SignalToAnswer.Hubs
 
                     await SendTimerInfoToAllUsers(game, time);
                     await _questionService.ChangeRemainingTime(question, time);
-                    await Task.Delay(1000);
+                    await Task.Delay(950);
                 }
 
                 await _questionService.MarkAsComplete(question);
@@ -287,11 +316,40 @@ namespace SignalToAnswer.Hubs
                 await SendAnswerChoiceToAllUsers(game, match, question);
                 await SendQuestionInfoToAllUsers(game, question, true);
 
-                await Task.Delay(5000);
                 question = await _questionService.GetOneCurrentQuietly(game.Id.Value, match.Id.Value);
-            } while (question != null);
 
-            var results = await _resultService.GetAll(game.Id.Value, match.Id.Value);
+                await Task.Delay(3000);
+            } while (question != null);
+        }
+
+        public async Task EndGame(Game game)
+        {
+            var status = await _gameService.GetStatusNoTracking(game.Id.Value);
+
+            if (status != GameStatus.CANCELLED)
+            {
+                var match = await _matchService.GetOneLatest(game.Id.Value);
+
+                if (game.GameType != GameType.SOLO)
+                {
+                    if (status == GameStatus.PLAYER_DISCONNECTED_DURING_GAME)
+                    {
+                        await AddLossToPlayerDisconnectedInGame(game, match);
+                    }
+                    else
+                    {
+                        await DetermineWinner(game, match);
+                    }
+                }
+
+                await _matchService.MarkAsComplete(match);
+                await _gameService.ChangeStatus(game, GameStatus.GAME_END);
+
+                await SendEndGameInfoToUsers(game);
+                await SendResultInfoToAllUsers(game, match, true);
+            }
+
+            Context.Abort();
         }
 
         private async Task SendLoadingMessageToUser(User user, string message)
@@ -312,10 +370,11 @@ namespace SignalToAnswer.Hubs
             connections.ForEach(async c => await Clients.User(c.UserIdentifier).ReceiveHideLoading());
         }
 
-        private async Task SendResultInfoToAllUsers(Game game, Match match)
+        private async Task SendResultInfoToAllUsers(Game game, Match match, bool endGame)
         {
-            var results = await _resultService.GetAll(game.Id.Value, match.Id.Value);
-            var resultInfoDtos = _resultInfoDtoMapper.Map(results);
+            var results = await _resultService.GetAllNoTracking(game.Id.Value, match.Id.Value);
+
+            var resultInfoDtos = _resultInfoDtoMapper.Map(results, endGame);
 
             var connections = await GetInGameConnections(game);
             connections.ForEach(async c => await Clients.User(c.UserIdentifier).ReceiveResultInfo(resultInfoDtos));
@@ -323,7 +382,7 @@ namespace SignalToAnswer.Hubs
 
         private async Task SendResultInfoToAllUsers(Game game, Match match, Question question)
         {
-            var results = await _resultService.GetAll(game.Id.Value, match.Id.Value);
+            var results = await _resultService.GetAllNoTracking(game.Id.Value, match.Id.Value);
             var resultInfoDtos = _resultInfoDtoMapper.Map(results, question);
 
             var connections = await GetInGameConnections(game);
@@ -332,12 +391,7 @@ namespace SignalToAnswer.Hubs
 
         private async Task SendQuestionInfoToAllUsers(Game game, Question question, bool showCorrectAnswer)
         {
-            var questionDisplayDto = _questionInfoDtoMapper.Map(question, game.QuestionsCount);
-
-            if (showCorrectAnswer)
-            {
-                questionDisplayDto.CorrectAnswer = question.CorrectAnswer;
-            }
+            var questionDisplayDto = _questionInfoDtoMapper.Map(question, game.QuestionsCount, showCorrectAnswer);
 
             var connections = await GetInGameConnections(game);
             connections.ForEach(async c => await Clients.User(c.UserIdentifier).ReceiveQuestionInfo(questionDisplayDto));
@@ -405,6 +459,12 @@ namespace SignalToAnswer.Hubs
             connections.ForEach(async c => await Clients.User(c.UserIdentifier).ReceiveTimerInfo(time));
         }
 
+        private async Task SendEndGameInfoToUsers(Game game)
+        {
+            var connections = await GetInGameConnections(game);
+            connections.ForEach(async c => await Clients.User(c.UserIdentifier).ReceiveEndGameInfo(new EndGameInfoDto(game.GameType)));
+        }
+
         private bool IsUserHostBot(User user)
         {
             return user.UserRole.Role.Name.Equals(RoleType.HOST_BOT);
@@ -413,21 +473,24 @@ namespace SignalToAnswer.Hubs
         private async Task<List<Connection>> GetInGameConnections(Game game)
         {
             var inGame = await _groupService.GetOneInGame(game.Id.Value, game.GameType);
-            
+
             return await _connectionService.GetAll(inGame.Id.Value);
         }
 
         private async Task<bool> CheckIfAllUsersAreInGame(Game game)
         {
             var connections = await GetInGameConnections(game);
-            var status = await _gameService.GetStatus(game.Id.Value);
+            var status = await _gameService.GetStatusNoTracking(game.Id.Value);
 
-            return connections.Count == game.MaxPlayerCount && status != GameStatus.PLAYER_DISCONNECTED;
+            return connections.Count == game.MaxPlayerCount && (status != GameStatus.PLAYER_DISCONNECTED || status != GameStatus.PLAYER_DISCONNECTED_DURING_GAME);
         }
 
         private async Task CancelGame(Game game)
         {
             var match = await _matchService.GetOneLatest(game.Id.Value);
+            var results = await _resultService.GetAll(game.Id.Value, match.Id.Value);
+            var questions = await _questionService.GetAll(game.Id.Value, match.Id.Value);
+           
             var finishedMatches = await _matchService.GetAllFinished(game.Id.Value);
 
             if (match != null)
@@ -435,15 +498,76 @@ namespace SignalToAnswer.Hubs
                 await _matchService.Deactivate(match);
             }
 
+            if (results.Count > 0)
+            {
+                results.ForEach(async r => await _resultService.Deactivate(r));
+            }
+
+            if (questions.Count > 0)
+            {
+                questions.ForEach(async q => await _questionService.Deactivate(q));
+            }
+
             if (finishedMatches.Count < 1)
             {
                 await _gameService.Deactivate(game);
-            }
 
-            Context.Abort();
+                var players = await _playerService.GetAll(game.Id.Value);
+                
+                if (players.Count > 0)
+                {
+                    players.ForEach(async p => await _playerService.Deactivate(p));
+                }
+            }
 
             var connections = await GetInGameConnections(game);
             connections.ForEach(c => Clients.User(c.UserIdentifier).ReceiveGameCancelled("User disconnected from in-game lobby!"));
+        }
+
+        private async Task AddLossToPlayerDisconnectedInGame(Game game, Match match)
+        {
+            var players = await _playerService.GetAll(game.Id.Value, PlayerStatus.DISCONNECTED_DURING_GAME);
+            var player = players.OrderByDescending(p => p.UpdatedAt).FirstOrDefault();
+
+            var result = await _resultService.GetOne(game.Id.Value, match.Id.Value, player.Id.Value);
+
+            result.Note = "Disconnected during game.";
+            result.WinnerStatus = WinnerStatus.LOSS;
+            await _resultService.Save(result);
+        }
+
+        private async Task DetermineWinner(Game game, Match match)
+        {
+            var bestResults = (await _resultService.GetAllNoTracking(game.Id.Value, match.Id.Value))
+                .GroupBy(r => r.TotalScore)
+                .OrderByDescending(r => r.Key)
+                .First()
+                .ToList();
+
+            if (bestResults.Count > 1)
+            {
+                bestResults.ForEach(async r => await SaveResultEndGame(r.Id.Value, r.TotalScore, WinnerStatus.DRAW));
+            }
+            else
+            {
+                bestResults.ForEach(async r => await SaveResultEndGame(r.Id.Value, r.TotalScore, WinnerStatus.WIN));
+            }
+
+            var bestScore = bestResults.First().TotalScore;
+
+            var otherResults = (await _resultService.GetAllNoTracking(game.Id.Value, match.Id.Value))
+                .Where(r => !r.TotalScore.Equals(bestScore))
+                .ToList();
+
+            otherResults.ForEach(async r => await SaveResultEndGame(r.Id.Value, r.TotalScore, WinnerStatus.LOSS));
+        }
+
+        private async Task SaveResultEndGame(int id, int totalScore, int winnerStatus)
+        {
+            var result = await _resultService.GetOne(id);
+            result.TotalScore = totalScore;
+            result.WinnerStatus = winnerStatus;
+            await _resultService.Save(result);
         }
     }
 }

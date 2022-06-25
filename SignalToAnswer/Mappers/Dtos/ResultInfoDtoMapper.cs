@@ -10,24 +10,29 @@ namespace SignalToAnswer.Mappers.Dtos.GameHub
     public class ResultInfoDtoMapper
     {
         private readonly AnswerService _answerService;
-        private readonly GameService _gameService;
         private readonly PlayerService _playerService;
         private readonly UserService _userService;
 
-        public ResultInfoDtoMapper(AnswerService answerService, GameService gameService, PlayerService playerService, UserService userService)
+        public ResultInfoDtoMapper(AnswerService answerService, PlayerService playerService, UserService userService)
         {
             _answerService = answerService;
-            _gameService = gameService;
             _playerService = playerService;
             _userService = userService;
         }
 
-        public async Task<ResultInfoDto> Map(Result result)
+        public async Task<ResultInfoDto> Map(Result result, bool endGame)
         {
             var player = await _playerService.GetOne(result.PlayerId);
             var user = await _userService.GetOne(player.UserId);
 
-            return new ResultInfoDto(user.UserName, result.TotalScore);
+            if (endGame)
+            {
+                return new ResultInfoDto(user.UserName, result.TotalScore, result.WinnerStatus, result.Note);
+            }
+            else
+            {
+                return new ResultInfoDto(user.UserName, result.TotalScore);
+            }
         }
 
         public async Task<ResultInfoDto> Map(Result result, Question question)
@@ -51,10 +56,10 @@ namespace SignalToAnswer.Mappers.Dtos.GameHub
             return new ResultInfoDto(user.UserName, result.TotalScore);
         }
 
-        public List<ResultInfoDto> Map(List<Result> results)
+        public List<ResultInfoDto> Map(List<Result> results, bool endGame)
         {
             var dtos = new List<ResultInfoDto>();
-            results.ForEach(async r => dtos.Add(await Map(r)));
+            results.ForEach(async r => dtos.Add(await Map(r, endGame)));
 
             return dtos;
         }
