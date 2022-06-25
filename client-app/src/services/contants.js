@@ -45,3 +45,9 @@ export const QuestionDifficulties = {
     MEDIUM: { id: 2, name: "Medium" },
     HARD: { id: 3, name: "Hard" }
 }
+
+export const WinnerStatus = {
+    WIN: { id: 1, name: "Win" },
+    LOSS: { id: 2, name: "Loss" },
+    DRAW: { id: 3, name: "Draw" }
+}

@@ -54,7 +54,7 @@ namespace SignalToAnswer.Jobs
                     var game = await _gameService.CreateGame();
                     var group = await _groupService.CreateInGamePublicGroup(game);
 
-                    foreach (var p in players)
+                    players.ForEach(async p =>
                     {
                         var user = await _userService.GetOne(p.UserId);
 
@@ -65,7 +65,7 @@ namespace SignalToAnswer.Jobs
 
                         _logger.LogInformation("Launching public game {id}!", game.Id.Value);
                         await _presenceHubContext.Clients.User(p.UserIdentifier).SendCoreAsync("ReceivePublicGame", new object[] { game.Id });
-                    }
+                    });
 
                     await CountUsersInPublicLobby();
                 }

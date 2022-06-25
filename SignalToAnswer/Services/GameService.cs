@@ -114,9 +114,15 @@ namespace SignalToAnswer.Services
             return await _gameRepository.FindOneByIdAndGameStatus(gameId, gameStatus);
         }
 
-        public async Task<int> GetStatus(int gameId)
+        public async Task<int> GetStatusNoTracking(int gameId)
         {
-            var game = await GetOne(gameId);
+            var game = await _gameRepository.FindOneByIdNoTracking(gameId);
+
+            if (game == null)
+            {
+                throw new SignalToAnswerException("Selected game does not exist!");
+            }
+
             return game.GameStatus;
         }
 
@@ -127,10 +133,10 @@ namespace SignalToAnswer.Services
         }
 
         [Transactional]
-        public async Task<Game> Deactivate(Game game)
+        public async Task Deactivate(Game game)
         {
             game.Active = false;
-            return await _gameRepository.Save(game);
+            await _gameRepository.Save(game);
         }
     }
 }

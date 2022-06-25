@@ -1,4 +1,5 @@
-﻿using SignalToAnswer.Entities;
+﻿using SignalToAnswer.Attributes;
+using SignalToAnswer.Entities;
 using SignalToAnswer.Integrations.TriviaApi.Services;
 using SignalToAnswer.Repositories;
 using System.Collections.Generic;
@@ -31,14 +32,27 @@ namespace SignalToAnswer.Services
             return questions;
         }
 
+        public async Task<List<Question>> GetAll(int gameId, int matchId)
+        {
+            return await _questionRepository.FindAllByGameIdAndMatchId(gameId, matchId);
+        }
+
         public async Task<Question> GetOneCurrentQuietly(int gameId, int matchId)
         {
             return await _questionRepository.FindOneByGameIdAndMatchIdAndIsOngoingOrderedByRowIdAsc(gameId, matchId);
         }
 
+        [Transactional]
         public async Task MarkAsComplete(Question question)
         {
             question.IsOngoing = false;
+            await _questionRepository.Save(question);
+        }
+
+        [Transactional]
+        public async Task Deactivate(Question question)
+        {
+            question.Active = false;
             await _questionRepository.Save(question);
         }
     }

@@ -86,5 +86,12 @@ namespace SignalToAnswer.Services
         {
             return await _playerRepository.FindOneByGameIdAndUserId(gameId, userId);
         }
+
+        [Transactional]
+        public async Task Deactivate(Player player)
+        {
+            player.Active = false;
+            await _playerRepository.Save(player);
+        }
     }
 }

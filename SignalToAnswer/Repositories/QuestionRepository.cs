@@ -2,6 +2,7 @@
 using SignalToAnswer.Data;
 using SignalToAnswer.Entities;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -16,6 +17,11 @@ namespace SignalToAnswer.Repositories
             _dataContext = dataContext;
         }
 
+        public async Task<List<Question>> FindAllByGameIdAndMatchId(int gameId, int matchId)
+        {
+            return await _dataContext.Questions.Where(q => q.GameId.Equals(gameId) && q.MatchId.Equals(matchId)
+                && q.Active.Equals(true)).ToListAsync();
+        }
         public async Task<Question> FindOneByGameIdAndMatchIdAndIsOngoingOrderedByRowIdAsc(int gameId, int matchId)
         {
             return await _dataContext.Questions.Where(q => q.GameId.Equals(gameId) && q.MatchId.Equals(matchId)

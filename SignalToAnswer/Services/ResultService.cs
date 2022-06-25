@@ -51,6 +51,23 @@ namespace SignalToAnswer.Services
             return await _resultRepository.FindAllByGameIdAndMatchId(gameId, matchId);
         }
 
+        public async Task<List<Result>> GetAllNoTracking(int gameId, int matchId)
+        {
+            return await _resultRepository.FindAllByGameIdAndMatchIdNoTracking(gameId, matchId);
+        }
+
+        public async Task<Result> GetOne(int id)
+        {
+            var result = await _resultRepository.FindOneById(id);
+
+            if (result == null)
+            {
+                throw new SignalToAnswerException("Selected result does not exist!");
+            }
+
+            return result;
+        }
+
         public async Task<Result> GetOne(int gameId, int matchId, int playerId)
         {
             var result =  await _resultRepository.FindOneByGameIdAndMatchIdAndPlayerId(gameId, matchId, playerId);
@@ -67,6 +84,13 @@ namespace SignalToAnswer.Services
         public async Task<Result> Save(Result result)
         {
             return await _resultRepository.Save(result);
+        }
+
+        [Transactional]
+        public async Task Deactivate(Result result)
+        {
+            result.Active = false;
+            await _resultRepository.Save(result);
         }
     }
 }

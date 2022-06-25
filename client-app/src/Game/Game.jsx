@@ -1,6 +1,7 @@
 import { Component } from "react";
 import { isNotNil } from "../services/util";
 import AnswerSelection from "./AnswerSelection";
+import EndGame from "./EndGame";
 import Question from "./Question";
 import ResultBoard from "./ResultBoard";
 import Timer from "./Timer";
@@ -11,10 +12,11 @@ class Game extends Component {
     }
 
     render() {
-        const { results, question, timer, answerChoices } = this.props;
+        const { results, question, timer, answerChoices, endGame } = this.props;
 
         return (
             <div>
+                {isNotNil(endGame) && (<EndGame endGame={endGame} />) }
                 {isNotNil(results) && (<ResultBoard results={results}/>)}
                 {isNotNil(question) && (<Question question={question} />)}
                 {isNotNil(timer) && (<Timer timer={timer} />)}

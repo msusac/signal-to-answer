@@ -5,6 +5,9 @@ const Question = (props) => {
 
     const { row, totalRows, description, category, difficulty, scoreMultiplier, correctAnswer } = props.question;
 
+    const categoryName = Object.values(QuestionCategories).find(a => a.id === category).name
+    const difficultyName = Object.values(QuestionDifficulties).find(a => a.id === difficulty).name
+
     return (
         <div className="row m-2">
             <div className="col-sm-12">
@@ -21,7 +24,7 @@ const Question = (props) => {
                         </div>
                     )}
                     <div className="card-footer bg-white text-center">
-                        <h3 className="text-black">{Object.values(QuestionCategories).find(a => a.id === category).name} - {Object.values(QuestionDifficulties).find(a => a.id === difficulty).name} (x{scoreMultiplier})</h3>
+                        <h3 className="text-black">{categoryName} - {difficultyName} (x{scoreMultiplier})</h3>
                     </div>
                 </div>
             </div>

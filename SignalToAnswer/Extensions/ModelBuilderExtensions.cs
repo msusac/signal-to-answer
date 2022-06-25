@@ -478,9 +478,9 @@ namespace SignalToAnswer.Extensions
                 .HasColumnName("TOTAL_SCORE")
                 .IsRequired();
 
-                b.Property(r => r.IsWinner)
-                .HasColumnName("IS_WINNER")
-                .IsRequired();
+                b.Property(r => r.WinnerStatus)
+                .HasColumnName("WINNER_STATUS")
+                .HasDefaultValue(0);
 
                 b.Property(r => r.Note)
                 .HasColumnName("NOTE");

@@ -49,7 +49,6 @@ namespace SignalToAnswer.Mappers.Dtos
 
             taQuestions.ForEach(async q => {
                 row++;
-                
                 questionList.Add(await Map(q, game, match, row));
             });
 

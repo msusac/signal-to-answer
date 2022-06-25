@@ -86,7 +86,8 @@ export function clearGameData() {
     results: [],
     answerChoices: [],
     question: '',
-    timer: ''
+    timer: '',
+    endGame: ''
   })
 }
 
@@ -188,9 +189,20 @@ export function gameHubStartConnection(gameId) {
 
   try {
     connection.on("ReceiveGameCancelled", (message) => {
-      toast.info("Game cancelled due following reason: " + message, { containerId: "info" })
+      toast.info("Game match cancelled due following reason: " + message, { containerId: "info" })
       leaveGame()
       hideLoadingModal()
+    })
+  }
+  catch (ex) {
+    leaveGame()
+    hideLoadingModal()
+  }
+
+  try {
+    connection.on("ReceiveEndGameInfo", (endGame) => {
+      clearGameData()
+      app.setState({ endGame: endGame })
     })
   }
   catch (ex) {
@@ -231,7 +243,8 @@ export function presenceHubStartConnection() {
 
   try {
     connection.on("ReceiveGroupType", (groupId) => {
-      app.setState({ groupType: Object.values(GroupType).find(a => a.id === groupId) })
+      const groupType = Object.values(GroupType).find(a => a.id === groupId)
+      app.setState({ groupType: groupType })
 
       if (isGroupType(GroupType.OFFLINE)) {
         app.setState({ presenceHubConnection: null, gameHubConnection: null })
@@ -291,7 +304,7 @@ export function presenceHubStartConnection() {
   try {
     connection.on("ReceivePrivateGameCancelled", (message) => {
       hideLoadingModal()
-      toast.info("Private game was cancelled due following reason: " + message, { containerId: "info" })
+      toast.info("Private game cancelled due following reason: " + message, { containerId: "info" })
     })
   }
   catch (ex) {
@@ -318,7 +331,6 @@ export function presenceHubStopConnection() {
 export function presenceHubChangeGroupUnique(groupType) {
   try {
     app.state.presenceHubConnection.invoke("ChangeGroupUnique", groupType.id)
-    clearGameData()
   }
   catch (ex) {
     toast.error("An error has occurred while changing connection groupType.", { containerId: "info" })
@@ -364,6 +376,7 @@ class App extends Component {
       answerChoices: [],
       question: '',
       timer: '',
+      endGame: ''
     }
 
     app = this
@@ -432,7 +445,8 @@ class App extends Component {
                 results={this.state.results} 
                 question={this.state.question}
                 timer={this.state.timer}
-                answerChoices={this.state.answerChoices} />)}
+                answerChoices={this.state.answerChoices}
+                endGame={this.state.endGame} />)}
             </div>
           </main>
           <Footer />
