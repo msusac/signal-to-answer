@@ -41,36 +41,38 @@ namespace SignalToAnswer.Jobs
         {
             var publicLobby = await _groupService.GetOneUnique(GroupType.PUBLIC_LOBBY);
 
-            List<Connection> players;
+            List<Connection> connections;
 
             do
             {
-                players = await _connectionService.GetTwoRandom(publicLobby.Id.Value);
+                connections = await _connectionService.GetTwoRandom(publicLobby.Id.Value);
 
-                if (players.Count == 2)
+                if (connections.Count == 2)
                 {
-                    _logger.LogInformation("Creating a public game for users: {UserIds}", string.Join(", ", players.Select(p => p.UserId).ToList()));
+                    _logger.LogInformation("Creating a public game for users: {UserIds}", string.Join(", ", connections.Select(p => p.UserId).ToList()));
 
                     var game = await _gameService.CreateGame();
                     var group = await _groupService.CreateInGamePublicGroup(game);
 
-                    players.ForEach(async p =>
-                    {
-                        var user = await _userService.GetOne(p.UserId);
-
-                        await _playerService.AddPlayerToGame(game, user);
-                        await _connectionService.Save(p, group, p.UserIdentifier);
-
-                        await _presenceHubContext.Clients.User(p.UserIdentifier).SendCoreAsync("ReceiveGroupType", new object[] { group.GroupType });
-
-                        _logger.LogInformation("Launching public game {id}!", game.Id.Value);
-                        await _presenceHubContext.Clients.User(p.UserIdentifier).SendCoreAsync("ReceivePublicGame", new object[] { game.Id });
-                    });
-
+                    connections.ForEach(async c => await SendPublicGameToUser(c, game, group));
+            
                     await CountUsersInPublicLobby();
                 }
             }
-            while (players.Count == 2);
+            while (connections.Count == 2);
+        }
+
+        private async Task SendPublicGameToUser(Connection connection, Game game, Group group)
+        {
+            var user = await _userService.GetOne(connection.UserId);
+
+            await _playerService.AddPlayerToGame(game, user);
+            await _connectionService.Save(connection, group, connection.UserIdentifier);
+
+            await _presenceHubContext.Clients.User(connection.UserIdentifier).SendCoreAsync("ReceiveGroupType", new object[] { group.GroupType });
+
+            _logger.LogInformation("Launching public game {id}!", game.Id.Value);
+            await _presenceHubContext.Clients.User(connection.UserIdentifier).SendCoreAsync("ReceivePublicGame", new object[] { game.Id });
         }
 
         private async Task CountUsersInPublicLobby()

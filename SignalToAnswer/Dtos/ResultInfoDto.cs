@@ -10,7 +10,7 @@
 
         public int? CurrentAnswerScore { get; set; }
 
-        public int WinnerStatus { get; set; }
+        public int? WinnerStatus { get; set; }
 
         public string Note { get; set; }
 
@@ -32,7 +32,7 @@
             CurrentAnswerScore = currentAnswerScore;
         }
 
-        public ResultInfoDto(string player, int score, int winnerStatus, string note) : this(player, score)
+        public ResultInfoDto(string player, int score, int? winnerStatus, string note) : this(player, score)
         {
             WinnerStatus = winnerStatus;
             Note = note;

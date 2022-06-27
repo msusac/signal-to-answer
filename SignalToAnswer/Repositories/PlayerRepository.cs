@@ -31,6 +31,13 @@ namespace SignalToAnswer.Repositories
                .ToListAsync();
         }
 
+        public async Task<List<Player>> FindAllByGameIdAndPlayerStatusAndReplayStatus(int gameId, int playerStatus, int replayStatus)
+        {
+            return await _dataContext.Players
+               .Where(p => p.GameId.Equals(gameId) && p.PlayerStatus.Equals(playerStatus) && p.ReplayStatus.Equals(replayStatus) && p.Active.Equals(true))
+               .ToListAsync();
+        }
+
         public async Task<Player> FindOneById(int id)
         {
             return await _dataContext.Players.SingleOrDefaultAsync(p => p.Id.Equals(id) && p.Active.Equals(true));
@@ -40,6 +47,11 @@ namespace SignalToAnswer.Repositories
         {
             return await _dataContext.Players
                 .SingleOrDefaultAsync(p => p.GameId.Equals(gameId) && p.UserId.Equals(userId) && p.Active.Equals(true));
+        }
+
+        public async Task<Player> FindOneByGameIdAndUserIdActiveExcluded(int gameId, Guid userId)
+        {
+            return await _dataContext.Players.SingleOrDefaultAsync(p => p.GameId.Equals(gameId) && p.UserId.Equals(userId));
         }
 
         public async Task<Player> Save(Player player)

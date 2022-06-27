@@ -29,10 +29,8 @@ namespace SignalToAnswer.Mappers.Dtos.GameHub
             {
                 return new ResultInfoDto(user.UserName, result.TotalScore, result.WinnerStatus, result.Note);
             }
-            else
-            {
-                return new ResultInfoDto(user.UserName, result.TotalScore);
-            }
+    
+            return new ResultInfoDto(user.UserName, result.TotalScore);
         }
 
         public async Task<ResultInfoDto> Map(Result result, Question question)

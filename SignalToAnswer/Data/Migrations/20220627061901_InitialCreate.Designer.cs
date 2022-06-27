@@ -11,7 +11,7 @@ using SignalToAnswer.Data;
 namespace SignalToAnswer.Data.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20220625100356_InitialCreate")]
+    [Migration("20220627061901_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -443,10 +443,8 @@ namespace SignalToAnswer.Data.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("UPDATED_AT");
 
-                    b.Property<int>("WinnerStatus")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int?>("WinnerStatus")
                         .HasColumnType("INTEGER")
-                        .HasDefaultValue(0)
                         .HasColumnName("WINNER_STATUS");
 
                     b.HasKey("Id");
@@ -505,18 +503,10 @@ namespace SignalToAnswer.Data.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("CREATED_AT");
 
-                    b.Property<string>("Description")
-                        .HasColumnType("VARCHAR(500)")
-                        .HasColumnName("DESCRIPTION");
-
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("VARCHAT(256)")
                         .HasColumnName("EMAIL");
-
-                    b.Property<string>("FullName")
-                        .HasColumnType("VARCHAR(100)")
-                        .HasColumnName("FULLNAME");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)

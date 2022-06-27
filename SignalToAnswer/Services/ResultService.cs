@@ -80,6 +80,18 @@ namespace SignalToAnswer.Services
             return result;
         }
 
+        public async Task<Result> GetOneNoTracking(int gameId, int matchId, int playerId)
+        {
+            var result = await _resultRepository.FindOneByGameIdAndMatchIdAndPlayerIdNoTracking(gameId, matchId, playerId);
+
+            if (result == null)
+            {
+                throw new SignalToAnswerException("Selected result does not exist!");
+            }
+
+            return result;
+        }
+
         [Transactional]
         public async Task<Result> Save(Result result)
         {

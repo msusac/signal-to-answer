@@ -14,7 +14,7 @@ namespace SignalToAnswer.Entities
 
         public int TotalScore { get; set; }
 
-        public int WinnerStatus { get; set; }
+        public int? WinnerStatus { get; set; }
 
         public string Note { get; set; }
 

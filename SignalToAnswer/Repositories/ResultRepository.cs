@@ -40,6 +40,12 @@ namespace SignalToAnswer.Repositories
                 r.PlayerId.Equals(playerId) && r.Active.Equals(true)).SingleOrDefaultAsync();
         }
 
+        public async Task<Result> FindOneByGameIdAndMatchIdAndPlayerIdNoTracking(int gameId, int matchId, int playerId)
+        {
+            return await _dataContext.Results.Where(r => r.GameId.Equals(gameId) && r.MatchId.Equals(matchId) &&
+                r.PlayerId.Equals(playerId) && r.Active.Equals(true)).AsNoTracking().SingleOrDefaultAsync();
+        }
+
         public async Task<Result> Save(Result result)
         {
             if (result.Id == null)

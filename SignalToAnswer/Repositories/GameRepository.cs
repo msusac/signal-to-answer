@@ -48,15 +48,26 @@ namespace SignalToAnswer.Repositories
             return await _dataContext.Games.SingleOrDefaultAsync(g => g.Id.Equals(id) && g.Active.Equals(true));
         }
 
-        public async Task<Game> FindOneByIdNoTracking(int id)
+        public async Task<Game> FindOneByIdActiveExcluded(int id)
         {
-            return await _dataContext.Games.AsNoTracking().SingleOrDefaultAsync(g => g.Id.Equals(id) && g.Active.Equals(true));
+            return await _dataContext.Games.SingleOrDefaultAsync(g => g.Id.Equals(id));
+        }
+
+        public async Task<Game> FindOneByIdNoTrackingActiveExcluded(int id)
+        {
+            return await _dataContext.Games.AsNoTracking().SingleOrDefaultAsync(g => g.Id.Equals(id));
         }
 
         public async Task<Game> FindOneByIdAndGameStatus(int id, int gameStatus)
         {
             return await _dataContext.Games
                 .SingleOrDefaultAsync(g => g.Id.Equals(id) && g.GameStatus.Equals(gameStatus) && g.Active.Equals(true));
+        }
+
+        public async Task<Game> FindOneByIdAndGameStatusIn(int id, List<int> gameStatuses)
+        {
+            return await _dataContext.Games
+                .SingleOrDefaultAsync(g => g.Id.Equals(id) && gameStatuses.Any(a => a.Equals(g.GameStatus)) && g.Active.Equals(true));
         }
 
         public async Task<Game> Save(Game game)

@@ -67,6 +67,13 @@ namespace SignalToAnswer.Services
             await _playerRepository.Save(player);
         }
 
+        [Transactional]
+        public async Task ChangeReplayStatus(Player player, int? replayStatus)
+        {
+            player.ReplayStatus = replayStatus;
+            await _playerRepository.Save(player);
+        }
+
         public async Task<List<Player>> GetAll(int gameId)
         {
             return await _playerRepository.FindAllByGameId(gameId);
@@ -77,6 +84,11 @@ namespace SignalToAnswer.Services
             return await _playerRepository.FindAllByGameIdAndPlayerStatus(gameId, playerStatus);
         }
 
+        public async Task<List<Player>> GetAll(int gameId, int playerStatus, int replayStatus)
+        {
+            return await _playerRepository.FindAllByGameIdAndPlayerStatusAndReplayStatus(gameId, playerStatus, replayStatus);
+        }
+
         public async Task<Player> GetOne(int id)
         {
             return await _playerRepository.FindOneById(id);
@@ -85,6 +97,11 @@ namespace SignalToAnswer.Services
         public async Task<Player> GetQuietly(int gameId, Guid userId)
         {
             return await _playerRepository.FindOneByGameIdAndUserId(gameId, userId);
+        }
+
+        public async Task<Player> GetOneActiveExcluded(int gameId, Guid userId)
+        {
+            return await _playerRepository.FindOneByGameIdAndUserIdActiveExcluded(gameId, userId);
         }
 
         [Transactional]

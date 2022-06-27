@@ -83,7 +83,14 @@ namespace SignalToAnswer.Mappers.Dtos
 
         private async Task<int> GetDifficulty(string difficulty)
         {
-            return (await _difficultyRepository.FindOneByParamUpper(difficulty)).Id.Value;
+            var item = await _difficultyRepository.FindOneByParamUpper(difficulty);
+
+            if (item == null)
+            {
+                return QuestionDifficulty.MEDIUM;
+            }
+
+            return item.Id.Value;
         }
 
         private int GetScoreMultiplier(int difficulty)
