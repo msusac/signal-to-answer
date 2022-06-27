@@ -97,9 +97,33 @@ namespace SignalToAnswer.Services
             return game;
         }
 
+        public async Task<Game> GetOneActiveExcluded(int gameId)
+        {
+            var game = await _gameRepository.FindOneByIdActiveExcluded(gameId);
+
+            if (game == null)
+            {
+                throw new SignalToAnswerException("Selected game does not exist!");
+            }
+
+            return game;
+        }
+
         public async Task<Game> GetOne(int gameId, int gameStatus)
         {
             var game = await _gameRepository.FindOneByIdAndGameStatus(gameId, gameStatus);
+
+            if (game == null)
+            {
+                throw new SignalToAnswerException("Selected game does not exist!");
+            }
+
+            return game;
+        }
+
+        public async Task<Game> GetOne(int gameId, List<int> gameStatuses)
+        {
+            var game = await _gameRepository.FindOneByIdAndGameStatusIn(gameId, gameStatuses);
 
             if (game == null)
             {
@@ -114,9 +138,9 @@ namespace SignalToAnswer.Services
             return await _gameRepository.FindOneByIdAndGameStatus(gameId, gameStatus);
         }
 
-        public async Task<int> GetStatusNoTracking(int gameId)
+        public async Task<int> GetStatusNoTrackingActiveExcluded(int gameId)
         {
-            var game = await _gameRepository.FindOneByIdNoTracking(gameId);
+            var game = await _gameRepository.FindOneByIdNoTrackingActiveExcluded(gameId);
 
             if (game == null)
             {

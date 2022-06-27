@@ -12,13 +12,11 @@ namespace SignalToAnswer.Jobs.User
     public class DeactivateHostBotJob : IJob
     {
         private readonly ILogger<DeactivateGuestJob> _logger;
-        private readonly ConnectionService _connectionService;
         private readonly UserService _userService;
 
-        public DeactivateHostBotJob(ILogger<DeactivateGuestJob> logger, ConnectionService connectionService, UserService userService)
+        public DeactivateHostBotJob(ILogger<DeactivateGuestJob> logger, UserService userService)
         {
             _logger = logger;
-            _connectionService = connectionService;
             _userService = userService;
         }
 
@@ -30,7 +28,7 @@ namespace SignalToAnswer.Jobs.User
 
             users.ForEach(async u =>
             {
-                if (DateTime.Now.Subtract(u.CreatedAt).Minutes >= 45)
+                if (DateTime.Now.Subtract(u.CreatedAt).Minutes >= 35)
                 {
                     await _userService.DeactivateAlt(u);
                     count++;

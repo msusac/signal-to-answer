@@ -41,7 +41,7 @@ const ResultBoardItem = (props) => {
                     <h3 className={`${currentAnswerStyle}`}>{currentAnswerText}</h3>
                 </div>
              )}
-             {((isNotNil(result.winnerStatus)) && (result.winnerStatus > 0)) && (
+             {(isNotNil(result.winnerStatus)) && (
                 <div className="card-footer text-center bg-white">
                     <h3 className='text-secondary'>{Object.values(WinnerStatus).find(w => w.id === result.winnerStatus).name}</h3>
                 </div>

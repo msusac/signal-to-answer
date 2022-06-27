@@ -479,8 +479,7 @@ namespace SignalToAnswer.Extensions
                 .IsRequired();
 
                 b.Property(r => r.WinnerStatus)
-                .HasColumnName("WINNER_STATUS")
-                .HasDefaultValue(0);
+                .HasColumnName("WINNER_STATUS");
 
                 b.Property(r => r.Note)
                 .HasColumnName("NOTE");
@@ -531,14 +530,6 @@ namespace SignalToAnswer.Extensions
 
                 b.Property(u => u.PasswordHash)
                .HasColumnName("PASSWORD_HASH");
-
-                b.Property(u => u.FullName)
-                .HasColumnName("FULLNAME")
-                .HasColumnType("VARCHAR(100)");
-
-                b.Property(u => u.Description)
-                .HasColumnName("DESCRIPTION")
-                .HasColumnType("VARCHAR(500)");
 
                 b.Property(u => u.CreatedAt)
                 .HasColumnName("CREATED_AT")

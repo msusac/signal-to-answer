@@ -94,8 +94,6 @@ namespace SignalToAnswer.Data.Migrations
                 columns: table => new
                 {
                     USER_ID = table.Column<Guid>(type: "TEXT", nullable: false),
-                    FULLNAME = table.Column<string>(type: "VARCHAR(100)", nullable: true),
-                    DESCRIPTION = table.Column<string>(type: "VARCHAR(500)", nullable: true),
                     CREATED_AT = table.Column<DateTime>(type: "TEXT", nullable: false),
                     UPDATED_AT = table.Column<DateTime>(type: "TEXT", nullable: false),
                     ACTIVE = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: true),
@@ -271,7 +269,7 @@ namespace SignalToAnswer.Data.Migrations
                     MATCH_ID = table.Column<int>(type: "INTEGER", nullable: false),
                     PLAYER_ID = table.Column<int>(type: "INTEGER", nullable: false),
                     TOTAL_SCORE = table.Column<int>(type: "INTEGER", nullable: false),
-                    WINNER_STATUS = table.Column<int>(type: "INTEGER", nullable: false, defaultValue: 0),
+                    WINNER_STATUS = table.Column<int>(type: "INTEGER", nullable: true),
                     NOTE = table.Column<string>(type: "TEXT", nullable: true),
                     CREATED_AT = table.Column<DateTime>(type: "TEXT", nullable: false),
                     UPDATED_AT = table.Column<DateTime>(type: "TEXT", nullable: false),

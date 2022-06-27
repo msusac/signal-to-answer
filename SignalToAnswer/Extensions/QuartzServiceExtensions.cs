@@ -16,9 +16,11 @@ namespace SignalToAnswer.Extensions
                 AddPublicLobbyJob(q);
                 AddInviteLobbyJob(q);
                 AddDeactivateGuestJob(q);
-                AddLaunchGameJob(q);
                 AddDeactivateHostBotJob(q);
-                AddDeactivateGameJob(q);
+                AddLaunchGameJob(q);
+                AddReplayGameJob(q);
+                AddCancelGameJob(q);
+                AddCancelGameReplayJob(q);
             });
 
             services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
@@ -63,19 +65,6 @@ namespace SignalToAnswer.Extensions
                     .RepeatForever()));
         }
 
-        private static void AddLaunchGameJob(IServiceCollectionQuartzConfigurator q)
-        {
-            var launchGameJobKey = new JobKey("LaunchGameJob");
-
-            q.AddJob<LaunchGameJob>(opt => opt.WithIdentity(launchGameJobKey));
-
-            q.AddTrigger(opts => opts.ForJob(launchGameJobKey)
-                .WithIdentity("launchGameJob-trigger")
-                .WithSimpleSchedule(x => x
-                    .WithIntervalInSeconds(10)
-                    .RepeatForever()));
-        }
-
         private static void AddDeactivateHostBotJob(IServiceCollectionQuartzConfigurator q)
         {
             var deactivateHostBotJobKey = new JobKey("DeactivateHostBotJob");
@@ -89,16 +78,56 @@ namespace SignalToAnswer.Extensions
                     .RepeatForever()));
         }
 
-        private static void AddDeactivateGameJob(IServiceCollectionQuartzConfigurator q)
+
+        private static void AddLaunchGameJob(IServiceCollectionQuartzConfigurator q)
         {
-            var deactivateGameJobKey = new JobKey("DeactivateGameJobKey");
+            var launchGameJobKey = new JobKey("LaunchGameJob");
 
-            q.AddJob<DeactivateGameJob>(opt => opt.WithIdentity(deactivateGameJobKey));
+            q.AddJob<LaunchGameJob>(opt => opt.WithIdentity(launchGameJobKey));
 
-            q.AddTrigger(opts => opts.ForJob(deactivateGameJobKey)
-                .WithIdentity("deactivateGameJobJob-trigger")
+            q.AddTrigger(opts => opts.ForJob(launchGameJobKey)
+                .WithIdentity("launchGameJob-trigger")
                 .WithSimpleSchedule(x => x
-                    .WithIntervalInSeconds(30)
+                    .WithIntervalInSeconds(10)
+                    .RepeatForever()));
+        }
+
+        private static void AddReplayGameJob(IServiceCollectionQuartzConfigurator q)
+        {
+            var replayGameJobKey = new JobKey("ReplayGameJob");
+
+            q.AddJob<ReplayGameJob>(opt => opt.WithIdentity(replayGameJobKey));
+
+            q.AddTrigger(opts => opts.ForJob(replayGameJobKey)
+                .WithIdentity("replayGameJob-trigger")
+                .WithSimpleSchedule(x => x
+                    .WithIntervalInSeconds(10)
+                    .RepeatForever()));
+        }
+
+        private static void AddCancelGameJob(IServiceCollectionQuartzConfigurator q)
+        {
+            var cancelGameJobKey = new JobKey("CancelGameJobKey");
+
+            q.AddJob<CancelGameJob>(opt => opt.WithIdentity(cancelGameJobKey));
+
+            q.AddTrigger(opts => opts.ForJob(cancelGameJobKey)
+                .WithIdentity("cancelGameJob-trigger")
+                .WithSimpleSchedule(x => x
+                    .WithIntervalInSeconds(15)
+                    .RepeatForever()));
+        }
+
+        private static void AddCancelGameReplayJob(IServiceCollectionQuartzConfigurator q)
+        {
+            var cancelGameReplayJobKey = new JobKey("CancelGameReplayJobKey");
+
+            q.AddJob<CancelGameReplayJob>(opt => opt.WithIdentity(cancelGameReplayJobKey));
+
+            q.AddTrigger(opts => opts.ForJob(cancelGameReplayJobKey)
+                .WithIdentity("cancelGameReplayJob-trigger")
+                .WithSimpleSchedule(x => x
+                    .WithIntervalInSeconds(15)
                     .RepeatForever()));
         }
     }
