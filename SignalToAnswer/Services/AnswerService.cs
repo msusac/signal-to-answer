@@ -15,6 +15,11 @@ namespace SignalToAnswer.Services
             _answerRepository = answerRepository;
         }
 
+        public async Task<List<Answer>> GetAllNoTracking(int gameId, int matchId, int questionId)
+        {
+            return await _answerRepository.FindAllByGameIdAndMatchIdAndQuestionIdNoTracking(gameId, matchId, questionId);
+        }
+
         public async Task<List<Answer>> GetAllIncorrect(int gameId, int matchId, int playerId, int questionId) 
         {
             return await _answerRepository.FindAllByGameIdAndMatchIdAndPlayerIdNotAndQuestionIdAndIsCorrectAnswerFalse(gameId, matchId, playerId, questionId);

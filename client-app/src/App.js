@@ -13,6 +13,7 @@ import Game from './Game/Game';
 import "./App.css"
 import PrivateGameJoinToast from './Toast/PrivateGameJoinToast';
 import notificationAudio from './assets/audios/notification.mp3'
+import GameReplayJoinToast from './Toast/GameReplayJoinToast';
 
 var app = {}
 
@@ -87,7 +88,8 @@ export function clearGameData() {
     answerChoices: [],
     question: '',
     timer: '',
-    endGame: ''
+    endGame: '',
+    showReplay: false
   })
 }
 
@@ -160,11 +162,57 @@ export function gameHubStartConnection(gameId) {
     clearGameData()
     app.setState({ endGame: endGame })
   })
+
+  connection.on("ReceiveGameReplayCancelled", (message) => {
+    hideLoadingModal()
+    toast.info("Game replay cancelled due following reason: " + message, { containerId: "info" })
+  });
+
+  connection.on("ReceiveShowReplayOption", (show) => {
+    app.setState({ showReplay: show })
+  })
+
+  connection.on("ReceiveGameReplayInvite", (fromUser) => {
+    const audio = new Audio(notificationAudio)
+    audio.play()
+
+    toast.info(<GameReplayJoinToast fromUser={fromUser} />, { containerId: "replay" })
+  });
+
+  connection.on("ReceiveClearGameData", () => {
+    clearGameData()
+  })
 }
 
 export function gameHubAnswerQuestion(selectedAnswerIndex) {
   app.state.gameHubConnection.invoke("AnswerQuestion", selectedAnswerIndex).catch((ex) => {
-    toast.error("An error has occurred while sending question answer.", { containerId: "info" })
+    if (ex.type === 'api') {
+      if (ex.status === 400) {
+        toast.error(ex.message, { containerId: "info" });
+      }
+      else if (ex.status === 500) {
+        toast.error("An error has occurred!", { containerId: "info" });
+      }
+    }
+  })
+}
+
+export function gameHubRequestGameReplay()  {
+  app.state.gameHubConnection.invoke("RequestGameReplay").catch((ex) => {
+    toast.error("An error has occurred while sending request for game replay!", { containerId: "info" });
+  })
+}
+
+export function gameHubReplyToGameReplayInvite(replyId) {
+  app.state.gameHubConnection.invoke("ReplyGameReplayInvite", replyId).catch((ex) => {
+    if (ex.type === 'api') {
+      if (ex.status === 400) {
+        toast.error(ex.message, { containerId: "info" });
+      }
+      else if (ex.status === 500) {
+        toast.error("An error has occurred!", { containerId: "info" });
+      }
+    }
   })
 }
 
@@ -256,6 +304,7 @@ export function leaveInviteLobby() {
 
 export function leaveGame() {
   app.state.gameHubConnection.stop().then(() => {
+    clearGameData()
     presenceHubChangeGroupUnique(GroupType.MAIN_LOBBY)
   })
 }
@@ -284,7 +333,8 @@ class App extends Component {
       answerChoices: [],
       question: '',
       timer: '',
-      endGame: ''
+      endGame: '',
+      showReplay: false
     }
 
     app = this
@@ -315,6 +365,15 @@ class App extends Component {
           containerId={"invite"}
           position="top-left"
           autoClose={25000}
+          pauseOnFocusLoss={false}
+          pauseOnHover={false}
+        />
+      )}
+      {isGroupTypeInGame() && (
+        <ToastContainer enableMultiContainer 
+          containerId={"replay"}
+          position="top-center"
+          autoClose={45000}
           pauseOnFocusLoss={false}
           pauseOnHover={false}
         />
@@ -354,7 +413,8 @@ class App extends Component {
                 question={this.state.question}
                 timer={this.state.timer}
                 answerChoices={this.state.answerChoices}
-                endGame={this.state.endGame} />)}
+                endGame={this.state.endGame}
+                showReplay={this.state.showReplay} />)}
             </div>
           </main>
           <Footer />

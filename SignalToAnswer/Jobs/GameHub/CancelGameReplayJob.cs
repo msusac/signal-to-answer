@@ -26,7 +26,7 @@ namespace SignalToAnswer.Jobs
 
         public async Task Execute(IJobExecutionContext context)
         {
-            var gameIds = await _gameService.GetAllId(GameStatus.WAITING_FOR_PLAYERS_TO_REPLAY);
+            var gameIds = await _gameService.GetAllId(GameStatus.PLAYERS_WANT_TO_REPLAY);
 
             gameIds.ForEach(async id =>
             {
@@ -35,7 +35,7 @@ namespace SignalToAnswer.Jobs
 
                 var connections = await _connectionService.GetAll(inGame.Id.Value);
 
-                if (DateTime.Now.Subtract(game.UpdatedAt).Minutes >= 1 && game.GameStatus == GameStatus.WAITING_FOR_PLAYERS_TO_REPLAY && connections.Count < game.MaxPlayerCount)
+                if (DateTime.Now.Subtract(game.UpdatedAt).Minutes >= 1 && game.GameStatus == GameStatus.PLAYERS_WANT_TO_REPLAY && connections.Count < game.MaxPlayerCount)
                 {
                     await _gameService.ChangeStatus(game, GameStatus.REPLAY_CANCELLED);
 

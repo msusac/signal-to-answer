@@ -51,3 +51,8 @@ export const WinnerStatus = {
     LOSS: { id: 2, name: "Loss" },
     DRAW: { id: 3, name: "Draw" }
 }
+
+export const ReplayStatus = {
+    WANTS_TO_REPLAY: 1,
+    DOES_NOT_WANT_TO_REPLAY: 2
+}

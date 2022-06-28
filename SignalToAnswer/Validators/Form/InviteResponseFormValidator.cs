@@ -20,7 +20,7 @@ namespace SignalToAnswer.Validators.Form
             _playerRepository = playerRepository;
         }
 
-        public async Task Validate(InviteResponseForm form, User user)
+        public async Task Validate(InviteReplyForm form, User user)
         {
             if (!form.GameId.HasValue) {
                 throw new SignalToAnswerException("Game Id is required!");

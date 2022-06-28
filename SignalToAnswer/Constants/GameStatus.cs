@@ -10,7 +10,7 @@
         public static readonly int PLAYER_DISCONNECTED = 6;
         public static readonly int PLAYER_DISCONNECTED_DURING_GAME = 7;
         public static readonly int CANCELLED = 8;
-        public static readonly int WAITING_FOR_PLAYERS_TO_REPLAY = 9;
+        public static readonly int PLAYERS_WANT_TO_REPLAY = 9;
         public static readonly int REPLAYING = 10;
         public static readonly int REPLAY_CANCELLED = 11;
     }
