@@ -42,7 +42,7 @@ const Account = {
 const Game = {
     createSolo: (body) => instance.post("/game/create-solo", body),
     createPrivate: (body) => instance.post("/game/create-private", body),
-    respondToPrivateGameInvite: (body) => instance.post("/game/respond-private-game-invite", body)
+    replyToPrivateGameInvite: (body) => instance.post("/game/reply-private-game-invite", body)
 }
 
 const List = {

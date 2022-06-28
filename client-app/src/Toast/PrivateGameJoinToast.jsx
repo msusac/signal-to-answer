@@ -25,7 +25,7 @@ class PrivateGameJoinToast extends Component {
         }
 
         try {
-            await api.Game.respondToPrivateGameInvite(body)
+            await api.Game.replyToPrivateGameInvite(body)
         }
         catch (ex) {
             toast.error(ex.message, { containerId: "info" })

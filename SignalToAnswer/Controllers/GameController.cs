@@ -31,10 +31,10 @@ namespace SignalToAnswer.Controllers
             await _gameFacade.CreatePrivateGame(form, User.GetUsername());
         }
 
-        [HttpPost("respond-private-game-invite")]
-        public async Task RespondToPrivateGameInvite([FromBody] InviteResponseForm form)
+        [HttpPost("reply-private-game-invite")]
+        public async Task ReplyToPrivateGameInvite([FromBody] InviteReplyForm form)
         {
-            await _gameFacade.RespondToPrivateGameInvite(form, User.GetUsername());
+            await _gameFacade.ReplyToPrivateGameInvite(form, User.GetUsername());
         }
     }
 }

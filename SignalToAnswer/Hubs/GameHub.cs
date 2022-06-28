@@ -35,6 +35,12 @@ namespace SignalToAnswer.Hubs
         public Task ReceiveEndGameInfo(EndGameInfoDto dto);
 
         public Task ReceiveGameReplayCancelled(string message);
+
+        public Task ReceiveShowReplayOption(bool show);
+
+        public Task ReceiveGameReplayInvite(string fromUser);
+
+        public Task ReceiveClearGameData();
     }
 
     [Transactional]
@@ -123,7 +129,7 @@ namespace SignalToAnswer.Hubs
                     {
                         await CancelGame(game, "User disconnected from game!");
                     }
-                    else if (status == GameStatus.WAITING_FOR_PLAYERS_TO_REPLAY)
+                    else if (status == GameStatus.PLAYERS_WANT_TO_REPLAY)
                     {
                         await CancelGameReplay(game, "User disconnected from game!");
                     }
@@ -132,6 +138,8 @@ namespace SignalToAnswer.Hubs
                         await _gameService.ChangeStatus(game, GameStatus.PLAYER_DISCONNECTED);
                     }
                 }
+
+                await SendShowReplayOptionToUsers(game, false);
             }
 
             await base.OnDisconnectedAsync(exception);
@@ -142,6 +150,7 @@ namespace SignalToAnswer.Hubs
         {
             var game = await _gameService.GetOne(gameId, new List<int>() { GameStatus.PLAYERS_CONNECTED, GameStatus.REPLAYING });
 
+            await ClearGameData(game);
             await PrepareMatch(game);
             await PrepareResults(game);
             await PrepareQuestions(game);
@@ -157,7 +166,7 @@ namespace SignalToAnswer.Hubs
             var match = await _matchService.GetOneLatest(game.Id.Value);
 
             var user = await _userService.GetOne(Context.GetUsername());
-            var player = await _playerService.GetQuietly(game.Id.Value, user.Id);
+            var player = await _playerService.GetOneQuietly(game.Id.Value, user.Id);
             var result = await _resultService.GetOne(game.Id.Value, match.Id.Value, player.Id.Value);
 
             var question = await _questionService.GetOneCurrentQuietly(game.Id.Value, match.Id.Value);
@@ -199,11 +208,61 @@ namespace SignalToAnswer.Hubs
             }
         }
 
+        [HubMethodName("RequestGameReplay")]
+        public async Task RequestGameReplay()
+        {
+            var game = await _gameService.GetOne(Context.GetGameId());
+            var connections = await GetInGameConnections(game);
+
+            if (game.GameStatus != GameStatus.GAME_END || game.GameStatus == GameStatus.REPLAY_CANCELLED || connections.Count < game.MaxPlayerCount)
+            {
+                throw new SignalToAnswerException("Game Replay Request rejected!");
+            }
+
+            var user = await _userService.GetOne(Context.GetUsername());
+            var player = await _playerService.GetOneQuietly(game.Id.Value, user.Id);
+
+            await _playerService.ChangeReplayStatus(player, ReplayStatus.WANTS_TO_REPLAY);
+            await _gameService.ChangeStatus(game, GameStatus.PLAYERS_WANT_TO_REPLAY);
+
+            await SendLoadingMessageToUser(user, "Sending game replay request...");
+            await SendShowReplayOptionToUsers(game, false);
+
+            if (game.GameType != GameType.SOLO)
+            {
+                await SendGameReplayInviteToUsers(game, user);                
+            }
+        }
+
+        [HubMethodName("ReplyGameReplayInvite")]
+        public async Task ReplyToGameReplayInvite(int replyId)
+        {
+            var game = await _gameService.GetOne(Context.GetGameId());
+            var user = await _userService.GetOne(Context.GetUsername());
+
+            if (game.GameStatus != GameStatus.PLAYERS_WANT_TO_REPLAY)
+            {
+                throw new SignalToAnswerException("Reply to Game Replay invite rejected!");
+            }
+
+            var player = await _playerService.GetOneQuietly(game.Id.Value, user.Id);
+
+            if (replyId == ReplayStatus.WANTS_TO_REPLAY)
+            {
+                await _playerService.ChangeReplayStatus(player, ReplayStatus.WANTS_TO_REPLAY);
+            }
+            else if (replyId == ReplayStatus.DOES_NOT_WANT_TO_REPLAY)
+            {
+                await _playerService.ChangeReplayStatus(player, ReplayStatus.DOES_NOT_WANT_TO_REPLAY);
+                await CancelGameReplay(game, "User rejected invite to replay game!");
+            }
+        }
+
         private async Task JoinGame(Game game, User user)
         {
             await SendLoadingMessageToUser(user, "Joining game...");
 
-            var player = await _playerService.GetQuietly(game.Id.Value, user.Id);
+            var player = await _playerService.GetOneQuietly(game.Id.Value, user.Id);
 
             if (player == null)
             {
@@ -215,6 +274,11 @@ namespace SignalToAnswer.Hubs
             }
 
             await _playerService.ChangePlayerStatus(player, PlayerStatus.JOINED_GAME);
+        }
+
+        private async Task ClearGameData(Game game)
+        {
+            await SendClearGameDataToUsers(game);
         }
 
         private async Task PrepareMatch(Game game)
@@ -303,7 +367,7 @@ namespace SignalToAnswer.Hubs
 
                 for (int time = 10; time >= 0; time--)
                 {
-                    if (!await CheckIfAllUsersAreInGame(game))
+                    if ((!await CheckIfAllUsersAreInGame(game)) || (await CheckIfAllUsersAnswered(game, match, question)))
                     {
                         break;
                     }
@@ -325,7 +389,7 @@ namespace SignalToAnswer.Hubs
 
                 question = await _questionService.GetOneCurrentQuietly(game.Id.Value, match.Id.Value);
 
-                await Task.Delay(3000);
+                await Task.Delay(4000);
             } while (question != null);
         }
 
@@ -354,6 +418,11 @@ namespace SignalToAnswer.Hubs
 
                 await SendEndGameInfoToUsers(game);
                 await SendResultInfoToAllUsers(game, match, true);
+
+                if (await CheckIfAllUsersAreInGame(game))
+                {
+                    await SendShowReplayOptionToUsers(game, true);
+                }
             }
 
             Context.Abort();
@@ -418,7 +487,7 @@ namespace SignalToAnswer.Hubs
 
             connections.ForEach(async (c) =>
             {
-                var player = await _playerService.GetQuietly(game.Id.Value, c.UserId);
+                var player = await _playerService.GetOneQuietly(game.Id.Value, c.UserId);
 
                 var answer = await _answerService.GetOneQuietly(game.Id.Value, match.Id.Value, player.Id.Value, question.Id.Value);
                 var otherIncorrectAnswers = (await _answerService.GetAllIncorrect(game.Id.Value, match.Id.Value, player.Id.Value, question.Id.Value))
@@ -472,6 +541,24 @@ namespace SignalToAnswer.Hubs
             connections.ForEach(async c => await Clients.User(c.UserIdentifier).ReceiveEndGameInfo(new EndGameInfoDto(game.GameType)));
         }
 
+        private async Task SendShowReplayOptionToUsers(Game game, bool showReplayOption)
+        {
+            var connections = await GetInGameConnections(game);
+            connections.ForEach(async c => await Clients.User(c.UserIdentifier).ReceiveShowReplayOption(showReplayOption));
+        }
+
+        private async Task SendGameReplayInviteToUsers(Game game, User fromUser)
+        {
+            var connections = (await GetInGameConnections(game)).Where(c => !c.UserId.Equals(fromUser.Id)).ToList();
+            connections.ForEach(async c => await Clients.User(c.UserIdentifier).ReceiveGameReplayInvite(fromUser.UserName));
+        }
+
+        private async Task SendClearGameDataToUsers(Game game)
+        {
+            var connections = await GetInGameConnections(game);
+            connections.ForEach(async c => await Clients.User(c.UserIdentifier).ReceiveClearGameData());
+        }
+
         private bool IsUserHostBot(User user)
         {
             return user.UserRole.Role.Name.Equals(RoleType.HOST_BOT);
@@ -490,6 +577,13 @@ namespace SignalToAnswer.Hubs
             var status = await _gameService.GetStatusNoTrackingActiveExcluded(game.Id.Value);
 
             return connections.Count == game.MaxPlayerCount && (status != GameStatus.PLAYER_DISCONNECTED || status != GameStatus.PLAYER_DISCONNECTED_DURING_GAME || status != GameStatus.CANCELLED || status != GameStatus.REPLAY_CANCELLED);
+        }
+
+        private async Task<bool> CheckIfAllUsersAnswered(Game game, Match match, Question question)
+        {
+            var answers = await _answerService.GetAllNoTracking(game.Id.Value, match.Id.Value, question.Id.Value);
+
+            return answers.Count == game.MaxPlayerCount;
         }
 
         private async Task CancelGame(Game game, string message)
@@ -523,7 +617,7 @@ namespace SignalToAnswer.Hubs
                 await _gameService.Deactivate(game);
 
                 var players = await _playerService.GetAll(game.Id.Value);
-                
+
                 if (players.Count > 0)
                 {
                     players.ForEach(async p => await _playerService.Deactivate(p));
@@ -536,7 +630,10 @@ namespace SignalToAnswer.Hubs
 
         private async Task CancelGameReplay(Game game, string message)
         {
+            await _gameService.ChangeStatus(game, GameStatus.REPLAY_CANCELLED);
 
+            var connections = await GetInGameConnections(game);
+            connections.ForEach(c => Clients.User(c.UserIdentifier).ReceiveGameReplayCancelled(message));
         }
 
         private async Task AddLossToPlayerDisconnectedInGame(Game game, Match match)

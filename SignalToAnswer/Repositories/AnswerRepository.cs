@@ -17,6 +17,12 @@ namespace SignalToAnswer.Repositories
             _dataContext = dataContext;
         }
 
+        public async Task<List<Answer>> FindAllByGameIdAndMatchIdAndQuestionIdNoTracking(int gameId, int matchId, int questionId)
+        {
+            return await _dataContext.Answers.Where(a => a.GameId.Equals(gameId) && a.MatchId.Equals(matchId) && a.QuestionId.Equals(questionId)
+                && a.Active.Equals(true)).AsNoTracking().ToListAsync();
+        }
+
         public async Task<List<Answer>> FindAllByGameIdAndMatchIdAndPlayerIdNotAndQuestionIdAndIsCorrectAnswerFalse(int gameId, int matchId, int playerId, int questionId)
         {
             return await _dataContext.Answers.Where(a => a.GameId.Equals(gameId) && a.MatchId.Equals(matchId) &&

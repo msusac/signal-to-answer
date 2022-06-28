@@ -33,11 +33,11 @@ namespace SignalToAnswer.Jobs
 
         public async Task Execute(IJobExecutionContext context)
         {
-            var gameIds = await _gameService.GetAllId(GameStatus.WAITING_FOR_PLAYERS_TO_REPLAY);
+            var gameIds = await _gameService.GetAllId(GameStatus.PLAYERS_WANT_TO_REPLAY);
 
             gameIds.ForEach(async id =>
             {
-                var game = await _gameService.GetOneQuietly(id.Value, GameStatus.WAITING_FOR_PLAYERS_TO_REPLAY);
+                var game = await _gameService.GetOneQuietly(id.Value, GameStatus.PLAYERS_WANT_TO_REPLAY);
 
                 if (game != null)
                 {
@@ -53,6 +53,7 @@ namespace SignalToAnswer.Jobs
 
                     if (players.Count == game.MaxPlayerCount)
                     {
+                        players.ForEach(async p => await _playerService.RemoveReplayStatus(p));
                         await _gameService.ChangeStatus(game, GameStatus.REPLAYING);
                         await SendLaunchGameToHostBot(game);
                     }

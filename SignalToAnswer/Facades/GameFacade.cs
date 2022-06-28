@@ -89,7 +89,7 @@ namespace SignalToAnswer.Facades.Hubs
         }
 
         [Transactional]
-        public async Task RespondToPrivateGameInvite(InviteResponseForm form, string username)
+        public async Task ReplyToPrivateGameInvite(InviteReplyForm form, string username)
         {
             var user = await _userService.GetOne(username);
 
@@ -98,7 +98,7 @@ namespace SignalToAnswer.Facades.Hubs
 
             var game = await _gameService.GetOne(form.GameId.Value, GameStatus.WAITING_FOR_PLAYERS_TO_ACCEPT_INVITE);
             var inviteLobby = await _groupService.GetOne(form.GroupId.Value);
-            var player = await _playerService.GetQuietly(game.Id.Value, user.Id);
+            var player = await _playerService.GetOneQuietly(game.Id.Value, user.Id);
 
             if (form.IsAccepted.Value)
             {
