@@ -39,7 +39,7 @@ namespace SignalToAnswer.Jobs
                 {
                     await _gameService.ChangeStatus(game, GameStatus.REPLAY_CANCELLED);
 
-                    connections.ForEach(c => _gameHubContext.Clients.User(c.UserIdentifier).SendCoreAsync("ReceiveGameReplayCancelled", new object[] { "Not enough users for replaying game!" }));
+                    await _gameHubContext.Clients.Group(inGame.GroupName).SendCoreAsync("ReceiveGameReplayCancelled", new object[] { "Not enough users for replaying game!" });
                 }
             });
         }

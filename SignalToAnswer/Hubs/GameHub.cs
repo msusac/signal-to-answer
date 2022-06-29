@@ -86,6 +86,10 @@ namespace SignalToAnswer.Hubs
             if (!IsUserHostBot(user))
             {
                 var game = await _gameService.GetOne(Context.GetGameId(), GameStatus.WAITING_FOR_PLAYERS_TO_CONNECT);
+                var group = await _groupService.GetOneInGame(game.Id.Value, game.GameType);
+
+                await Groups.AddToGroupAsync(Context.ConnectionId, group.GroupName);
+
                 await JoinGame(game, user);
             }
             else
@@ -104,6 +108,9 @@ namespace SignalToAnswer.Hubs
                 var player = await _playerService.GetOneActiveExcluded(Context.GetGameId(), user.Id);
 
                 var game = await _gameService.GetOneActiveExcluded(Context.GetGameId());
+                var group = await _groupService.GetOneInGame(game.Id.Value, game.GameType);
+
+                await Groups.RemoveFromGroupAsync(Context.ConnectionId, group.GroupName);
 
                 if (status == GameStatus.GAME_IN_PROGRESS)
                 {
@@ -250,6 +257,7 @@ namespace SignalToAnswer.Hubs
             if (replyId == ReplayStatus.WANTS_TO_REPLAY)
             {
                 await _playerService.ChangeReplayStatus(player, ReplayStatus.WANTS_TO_REPLAY);
+                await SendLoadingMessageToUser(user, "Joining to game replay");
             }
             else if (replyId == ReplayStatus.DOES_NOT_WANT_TO_REPLAY)
             {
@@ -374,7 +382,7 @@ namespace SignalToAnswer.Hubs
 
                     await SendTimerInfoToAllUsers(game, time);
                     await _questionService.ChangeRemainingTime(question, time);
-                    await Task.Delay(950);
+                    await Task.Delay(925);
                 }
 
                 await _questionService.MarkAsComplete(question);
@@ -436,14 +444,14 @@ namespace SignalToAnswer.Hubs
 
         private async Task SendLoadingMessageToAllUsers(Game game, string message)
         {
-            var connections = await GetInGameConnections(game);
-            connections.ForEach(async c => await Clients.User(c.UserIdentifier).ReceiveLoadingMessage(message));
+            var group = await _groupService.GetOneInGame(game.Id.Value, game.GameType);
+            await Clients.Group(group.GroupName).ReceiveLoadingMessage(message);
         }
 
         private async Task HideLoadingToAllUsers(Game game)
         {
-            var connections = await GetInGameConnections(game);
-            connections.ForEach(async c => await Clients.User(c.UserIdentifier).ReceiveHideLoading());
+            var group = await _groupService.GetOneInGame(game.Id.Value, game.GameType);
+            await Clients.Group(group.GroupName).ReceiveHideLoading();
         }
 
         private async Task SendResultInfoToAllUsers(Game game, Match match, bool endGame)
@@ -452,8 +460,8 @@ namespace SignalToAnswer.Hubs
 
             var resultInfoDtos = _resultInfoDtoMapper.Map(results, endGame);
 
-            var connections = await GetInGameConnections(game);
-            connections.ForEach(async c => await Clients.User(c.UserIdentifier).ReceiveResultInfo(resultInfoDtos));
+            var group = await _groupService.GetOneInGame(game.Id.Value, game.GameType);
+            await Clients.Group(group.GroupName).ReceiveResultInfo(resultInfoDtos);
         }
 
         private async Task SendResultInfoToAllUsers(Game game, Match match, Question question)
@@ -461,24 +469,24 @@ namespace SignalToAnswer.Hubs
             var results = await _resultService.GetAllNoTracking(game.Id.Value, match.Id.Value);
             var resultInfoDtos = _resultInfoDtoMapper.Map(results, question);
 
-            var connections = await GetInGameConnections(game);
-            connections.ForEach(async c => await Clients.User(c.UserIdentifier).ReceiveResultInfo(resultInfoDtos));
+            var group = await _groupService.GetOneInGame(game.Id.Value, game.GameType);
+            await Clients.Group(group.GroupName).ReceiveResultInfo(resultInfoDtos);
         }
 
         private async Task SendQuestionInfoToAllUsers(Game game, Question question, bool showCorrectAnswer)
         {
             var questionDisplayDto = _questionInfoDtoMapper.Map(question, game.QuestionsCount, showCorrectAnswer);
 
-            var connections = await GetInGameConnections(game);
-            connections.ForEach(async c => await Clients.User(c.UserIdentifier).ReceiveQuestionInfo(questionDisplayDto));
+            var group = await _groupService.GetOneInGame(game.Id.Value, game.GameType);
+            await Clients.Group(group.GroupName).ReceiveQuestionInfo(questionDisplayDto);
         }
 
         private async Task SendAnswerChoiceToAllUsers(Game game, Question question)
         {
             var answerChoiceDtos = _answerChoiceDtoMapper.Map(question);
 
-            var connections = await GetInGameConnections(game);
-            connections.ForEach(async c => await Clients.User(c.UserIdentifier).ReceiveAnswerChoice(answerChoiceDtos));
+            var group = await _groupService.GetOneInGame(game.Id.Value, game.GameType);
+            await Clients.Group(group.GroupName).ReceiveAnswerChoice(answerChoiceDtos);
         }
 
         private async Task SendAnswerChoiceToAllUsers(Game game, Match match, Question question)
@@ -524,39 +532,38 @@ namespace SignalToAnswer.Hubs
                         dto.IsDisabled = true;
                     }
                 }
-
                 await Clients.User(c.UserIdentifier).ReceiveAnswerChoice(answerChoiceDtos);
             });
         }
 
         private async Task SendTimerInfoToAllUsers(Game game, int time)
         {
-            var connections = await GetInGameConnections(game);
-            connections.ForEach(async c => await Clients.User(c.UserIdentifier).ReceiveTimerInfo(time));
+            var group = await _groupService.GetOneInGame(game.Id.Value, game.GameType);
+            await Clients.Group(group.GroupName).ReceiveTimerInfo(time);
         }
 
         private async Task SendEndGameInfoToUsers(Game game)
         {
-            var connections = await GetInGameConnections(game);
-            connections.ForEach(async c => await Clients.User(c.UserIdentifier).ReceiveEndGameInfo(new EndGameInfoDto(game.GameType)));
+            var group = await _groupService.GetOneInGame(game.Id.Value, game.GameType);
+            await Clients.Group(group.GroupName).ReceiveEndGameInfo(new EndGameInfoDto(game.GameType));
         }
 
         private async Task SendShowReplayOptionToUsers(Game game, bool showReplayOption)
         {
-            var connections = await GetInGameConnections(game);
-            connections.ForEach(async c => await Clients.User(c.UserIdentifier).ReceiveShowReplayOption(showReplayOption));
+            var group = await _groupService.GetOneInGame(game.Id.Value, game.GameType);
+            await Clients.Group(group.GroupName).ReceiveShowReplayOption(showReplayOption);
         }
 
         private async Task SendGameReplayInviteToUsers(Game game, User fromUser)
         {
-            var connections = (await GetInGameConnections(game)).Where(c => !c.UserId.Equals(fromUser.Id)).ToList();
-            connections.ForEach(async c => await Clients.User(c.UserIdentifier).ReceiveGameReplayInvite(fromUser.UserName));
+            var group = await _groupService.GetOneInGame(game.Id.Value, game.GameType);
+            await Clients.OthersInGroup(group.GroupName).ReceiveGameReplayInvite(fromUser.UserName);
         }
 
         private async Task SendClearGameDataToUsers(Game game)
         {
-            var connections = await GetInGameConnections(game);
-            connections.ForEach(async c => await Clients.User(c.UserIdentifier).ReceiveClearGameData());
+            var group = await _groupService.GetOneInGame(game.Id.Value, game.GameType);
+            await Clients.Group(group.GroupName).ReceiveClearGameData();
         }
 
         private bool IsUserHostBot(User user)
@@ -624,16 +631,16 @@ namespace SignalToAnswer.Hubs
                 }
             }
 
-            var connections = await GetInGameConnections(game);
-            connections.ForEach(c => Clients.User(c.UserIdentifier).ReceiveGameCancelled(message));
+            var group = await _groupService.GetOneInGame(game.Id.Value, game.GameType);
+            await Clients.Group(group.GroupName).ReceiveGameCancelled(message);
         }
 
         private async Task CancelGameReplay(Game game, string message)
         {
             await _gameService.ChangeStatus(game, GameStatus.REPLAY_CANCELLED);
 
-            var connections = await GetInGameConnections(game);
-            connections.ForEach(c => Clients.User(c.UserIdentifier).ReceiveGameReplayCancelled(message));
+            var group = await _groupService.GetOneInGame(game.Id.Value, game.GameType);
+            await Clients.OthersInGroup(group.GroupName).ReceiveGameReplayCancelled(message);
         }
 
         private async Task AddLossToPlayerDisconnectedInGame(Game game, Match match)
