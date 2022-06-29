@@ -48,7 +48,7 @@ namespace SignalToAnswer.Jobs
                         var connection = await _connectionService.GetOne(p.UserId);
                         var message = string.Format("{0} / {1} players waiting for game replay.", players.Count, game.MaxPlayerCount);
 
-                        await _gameHubContext.Clients.User(connection.UserIdentifier).SendCoreAsync("ReceiveLoadingMessagee", new object[] { message });
+                        await _gameHubContext.Clients.User(connection.UserIdentifier).SendCoreAsync("ReceiveLoadingMessage", new object[] { message });
                     });
 
                     if (players.Count == game.MaxPlayerCount)

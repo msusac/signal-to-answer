@@ -40,7 +40,7 @@ namespace SignalToAnswer.Jobs
                     await _gameService.ChangeStatus(game, GameStatus.CANCELLED);
                     await _gameService.Deactivate(game);
 
-                    connections.ForEach(c => _gameHubContext.Clients.User(c.UserIdentifier).SendCoreAsync("ReceiveGameCancelled", new object[] { "Not enough users for starting game!" }));
+                    await _gameHubContext.Clients.Group(inGame.GroupName).SendCoreAsync("ReceiveGameCancelled", new object[] { "Not enough users for starting game!" });
                 }
             });
         }
