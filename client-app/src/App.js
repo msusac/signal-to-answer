@@ -261,11 +261,11 @@ export function presenceHubStartConnection() {
     hideLoadingModal()
   });
 
-  connection.on("ReceivePrivateGameInvite", (fromUser, gameId, groupId) => {
+  connection.on("ReceivePrivateGameInvite", (invite) => {
     const audio = new Audio(notificationAudio)
     audio.play()
       
-    toast.info(<PrivateGameJoinToast fromUser={fromUser} gameId={gameId} groupId={groupId} />, { containerId: "invite" })
+    toast.info(<PrivateGameJoinToast fromUser={invite.fromUser} gameId={invite.gameId} groupId={invite.groupId} />, { containerId: "invite" })
   })
 
   connection.on("ReceivePrivateGameCancelled", (message) => {

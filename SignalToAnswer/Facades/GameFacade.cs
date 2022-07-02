@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using SignalToAnswer.Attributes;
 using SignalToAnswer.Constants;
+using SignalToAnswer.Dtos;
 using SignalToAnswer.Entities;
 using SignalToAnswer.Exceptions;
 using SignalToAnswer.Form;
@@ -14,7 +15,7 @@ namespace SignalToAnswer.Facades.Hubs
 {
     public class GameFacade
     {
-        private readonly IHubContext<PresenceHub> _presenceHubContext;
+        private readonly IHubContext<PresenceHub, IPresenceHub> _presenceHubContext;
         private readonly ConnectionService _connectionService;
         private readonly GameService _gameService;
         private readonly GroupService _groupService;
@@ -23,7 +24,7 @@ namespace SignalToAnswer.Facades.Hubs
         private readonly CreateGameFormValidator _createGameFormValidator;
         private readonly InviteResponseFormValidator _inviteResponseFormValidator;
 
-        public GameFacade(IHubContext<PresenceHub> presenceHubContext, ConnectionService connectionService, 
+        public GameFacade(IHubContext<PresenceHub, IPresenceHub> presenceHubContext, ConnectionService connectionService, 
             GameService gameService, GroupService groupService, PlayerService playerService, 
             UserService userService, CreateGameFormValidator createGameFormValidator, 
             InviteResponseFormValidator inviteResponseFormValidator)
@@ -115,7 +116,7 @@ namespace SignalToAnswer.Facades.Hubs
         private async Task SendPrivateGameInviteToUser(Game game, Group inviteLobby, User user, string fromUser)
         {
             var connection = await _connectionService.GetOne(user.Id);
-            await _presenceHubContext.Clients.User(connection.UserIdentifier).SendCoreAsync("ReceivePrivateGameInvite", new object[] { fromUser, game.Id.Value, inviteLobby.Id.Value });
+            await _presenceHubContext.Clients.User(connection.UserIdentifier).ReceivePrivateGameInvite(new PrivateGameInviteDto(fromUser, game.Id.Value, inviteLobby.Id.Value));
         }
 
         [Transactional]
@@ -131,14 +132,14 @@ namespace SignalToAnswer.Facades.Hubs
             {
                 var mainLobby = await _groupService.GetOneUnique(GroupType.MAIN_LOBBY);
                 await ChangeGroup(mainLobby, c);
-                await _presenceHubContext.Clients.User(c.UserIdentifier).SendCoreAsync("ReceivePrivateGameCancelled", new object[] { message });
+                await _presenceHubContext.Clients.User(c.UserIdentifier).ReceivePrivateGameCancelled(message);
             });
         }
 
         private async Task ChangeGroup(Group group, Connection connection)
         {
             await _connectionService.Save(connection, group, connection.UserIdentifier);
-            await _presenceHubContext.Clients.User(connection.UserIdentifier).SendCoreAsync("ReceiveGroupType", new object[] { group.GroupType });
+            await _presenceHubContext.Clients.User(connection.UserIdentifier).ReceiveGroupType(group.GroupType);
         }
 
         private async Task ChangeGroup(Group group, User user)
