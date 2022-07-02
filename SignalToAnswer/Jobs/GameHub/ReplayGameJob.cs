@@ -13,14 +13,14 @@ namespace SignalToAnswer.Jobs
     [DisallowConcurrentExecution]
     public class ReplayGameJob : IJob
     {
-        private readonly IHubContext<GameHub> _gameHubContext;
+        private readonly IHubContext<GameHub, IGameHub> _gameHubContext;
         private readonly ConnectionService _connectionService;
         private readonly GameService _gameService;
         private readonly PlayerService _playerService;
         private readonly TokenService _tokenService;
         private readonly UserService _userService;
 
-        public ReplayGameJob(IHubContext<GameHub> gameHubContext, ConnectionService connectionService, GameService gameService,
+        public ReplayGameJob(IHubContext<GameHub, IGameHub> gameHubContext, ConnectionService connectionService, GameService gameService,
             PlayerService playerService, TokenService tokenService, UserService userService)
         {
             _gameHubContext = gameHubContext;
@@ -48,7 +48,7 @@ namespace SignalToAnswer.Jobs
                         var connection = await _connectionService.GetOne(p.UserId);
                         var message = string.Format("{0} / {1} players waiting for game replay.", players.Count, game.MaxPlayerCount);
 
-                        await _gameHubContext.Clients.User(connection.UserIdentifier).SendCoreAsync("ReceiveLoadingMessage", new object[] { message });
+                        await _gameHubContext.Clients.User(connection.UserIdentifier).ReceiveLoadingMessage(message);
                     });
 
                     if (players.Count == game.MaxPlayerCount)

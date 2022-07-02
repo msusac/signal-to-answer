@@ -16,13 +16,13 @@ namespace SignalToAnswer.Jobs
     public class InviteLobbyJob : IJob
     {
         private readonly ILogger<InviteLobbyJob> _logger;
-        private readonly IHubContext<PresenceHub> _presenceHubContext;
+        private readonly IHubContext<PresenceHub, IPresenceHub> _presenceHubContext;
         private readonly ConnectionService _connectionService;
         private readonly GameService _gameService;
         private readonly GroupService _groupService;
         private readonly PlayerService _playerService;
 
-        public InviteLobbyJob(ILogger<InviteLobbyJob> logger, IHubContext<PresenceHub> presenceHubContext,
+        public InviteLobbyJob(ILogger<InviteLobbyJob> logger, IHubContext<PresenceHub, IPresenceHub> presenceHubContext,
             ConnectionService connectionService, GameService gameService, GroupService groupService,
             PlayerService playerService)
         {
@@ -120,7 +120,7 @@ namespace SignalToAnswer.Jobs
                 var mainLobby = await _groupService.GetOneUnique(GroupType.MAIN_LOBBY);
                 await ChangeGroup(mainLobby, c);
 
-                await _presenceHubContext.Clients.User(c.UserIdentifier).SendCoreAsync("ReceivePrivateGameCancelled", new object[] { message });
+                await _presenceHubContext.Clients.User(c.UserIdentifier).ReceivePrivateGameCancelled(message);
             });
         }
 
@@ -134,7 +134,7 @@ namespace SignalToAnswer.Jobs
             connections.ForEach(async c =>
             {
                 await ChangeGroup(inGamePrivate, c);
-                await _presenceHubContext.Clients.User(c.UserIdentifier).SendCoreAsync("ReceivePrivateGame", new object[] { game.Id.Value });
+                await _presenceHubContext.Clients.User(c.UserIdentifier).ReceivePrivateGame(game.Id.Value);
             });
         }
 
@@ -143,7 +143,7 @@ namespace SignalToAnswer.Jobs
             var connections = await _connectionService.GetAll(inviteLobby.Id.Value);
             var message = string.Format("{0} / {1} players connected in invite lobby.\n Launching game when all players are connected.", connections.Count, game.MaxPlayerCount);
 
-            connections.ForEach(async c => await _presenceHubContext.Clients.User(c.UserIdentifier).SendCoreAsync("ReceivePrivateGameLoadingMessage", new object[] { message }));
+            connections.ForEach(async c => await _presenceHubContext.Clients.User(c.UserIdentifier).ReceivePrivateGameLoadingMessage(message));
 
             return connections.Count;
         }
@@ -151,7 +151,7 @@ namespace SignalToAnswer.Jobs
         private async Task ChangeGroup(Group group, Connection connection)
         {
             await _connectionService.Save(connection, group, connection.UserIdentifier);
-            await _presenceHubContext.Clients.User(connection.UserIdentifier).SendCoreAsync("ReceiveGroupType", new object[] { group.GroupType });
+            await _presenceHubContext.Clients.User(connection.UserIdentifier).ReceiveGroupType(group.GroupType);
         }
     }
 

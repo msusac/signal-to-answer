@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.SignalR;
 using SignalToAnswer.Attributes;
 using SignalToAnswer.Constants;
+using SignalToAnswer.Dtos;
 using SignalToAnswer.Extensions;
 using SignalToAnswer.Services;
 using System.Threading.Tasks;
@@ -13,6 +14,16 @@ namespace SignalToAnswer.Hubs
         public Task ReceiveGroupType(int groupTypeId);
 
         public Task ReceivePublicLobbyCount(int count);
+
+        public Task ReceivePublicGame(int gameId);
+
+        public Task ReceivePrivateGame(int gameId);
+
+        public Task ReceivePrivateGameInvite(PrivateGameInviteDto dto);
+
+        public Task ReceivePrivateGameLoadingMessage(string message);
+
+        public Task ReceivePrivateGameCancelled(string message);
     }
 
     [Authorize]

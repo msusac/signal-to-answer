@@ -11,12 +11,12 @@ namespace SignalToAnswer.Jobs
     [DisallowConcurrentExecution]
     public class CancelGameReplayJob : IJob
     {
-        private readonly IHubContext<GameHub> _gameHubContext;
+        private readonly IHubContext<GameHub, IGameHub> _gameHubContext;
         private readonly ConnectionService _connectionService;
         private readonly GameService _gameService;
         private readonly GroupService _groupService;
 
-        public CancelGameReplayJob(IHubContext<GameHub> gameHubContext, ConnectionService connectionService, GameService gameService, GroupService groupService)
+        public CancelGameReplayJob(IHubContext<GameHub, IGameHub> gameHubContext, ConnectionService connectionService, GameService gameService, GroupService groupService)
         {
             _gameHubContext = gameHubContext;
             _connectionService = connectionService;
@@ -39,7 +39,7 @@ namespace SignalToAnswer.Jobs
                 {
                     await _gameService.ChangeStatus(game, GameStatus.REPLAY_CANCELLED);
 
-                    await _gameHubContext.Clients.Group(inGame.GroupName).SendCoreAsync("ReceiveGameReplayCancelled", new object[] { "Not enough users for replaying game!" });
+                    await _gameHubContext.Clients.Group(inGame.GroupName).ReceiveGameReplayCancelled("Not enough users for replaying game!");
                 }
             });
         }

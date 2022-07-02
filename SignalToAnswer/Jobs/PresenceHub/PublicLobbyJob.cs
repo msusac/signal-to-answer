@@ -16,14 +16,14 @@ namespace SignalToAnswer.Jobs
     public class PublicLobbyJob : IJob
     {
         private readonly ILogger<PublicLobbyJob> _logger;
-        private readonly IHubContext<PresenceHub> _presenceHubContext;
+        private readonly IHubContext<PresenceHub, IPresenceHub> _presenceHubContext;
         private readonly ConnectionService _connectionService;
         private readonly GameService _gameService;
         private readonly GroupService _groupService;
         private readonly PlayerService _playerService;
         private readonly UserService _userService;
 
-        public PublicLobbyJob(ILogger<PublicLobbyJob> logger, IHubContext<PresenceHub> presenceHubContext,
+        public PublicLobbyJob(ILogger<PublicLobbyJob> logger, IHubContext<PresenceHub, IPresenceHub> presenceHubContext,
             ConnectionService connectionService, GameService gameService, GroupService groupService,
             PlayerService playerService, UserService userService)
         {
@@ -69,17 +69,17 @@ namespace SignalToAnswer.Jobs
             await _playerService.AddPlayerToGame(game, user);
             await _connectionService.Save(connection, group, connection.UserIdentifier);
 
-            await _presenceHubContext.Clients.User(connection.UserIdentifier).SendCoreAsync("ReceiveGroupType", new object[] { group.GroupType });
+            await _presenceHubContext.Clients.User(connection.UserIdentifier).ReceiveGroupType(group.GroupType);
 
             _logger.LogInformation("Launching public game {id}!", game.Id.Value);
-            await _presenceHubContext.Clients.User(connection.UserIdentifier).SendCoreAsync("ReceivePublicGame", new object[] { game.Id });
+            await _presenceHubContext.Clients.User(connection.UserIdentifier).ReceivePublicGame(game.Id.Value);
         }
 
         private async Task CountUsersInPublicLobby()
         {
             var group = await _groupService.GetOneUnique(GroupType.PUBLIC_LOBBY);
             var users = await _connectionService.GetAll(group.Id.Value);
-            await _presenceHubContext.Clients.All.SendCoreAsync("ReceivePublicLobbyCount", new object[] { users.Count });
+            await _presenceHubContext.Clients.All.ReceivePublicLobbyCount(users.Count);
         }
     }
 }
