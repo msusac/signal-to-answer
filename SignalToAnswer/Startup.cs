@@ -40,6 +40,10 @@ namespace SignalToAnswer
 
             app.UseRouting();
 
+            app.UseDefaultFiles();
+
+            app.UseStaticFiles();
+
             app.UseAuthentication();
 
             app.UseAuthorization();
@@ -49,6 +53,7 @@ namespace SignalToAnswer
                 endpoints.MapControllers();
                 endpoints.MapHub<PresenceHub>("hub/presence-hub");
                 endpoints.MapHub<GameHub>("hub/game-hub");
+                endpoints.MapFallbackToController("Index", "Fallback");
             });
         }
     }
