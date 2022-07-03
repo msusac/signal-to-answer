@@ -133,6 +133,11 @@ namespace SignalToAnswer.Services
             return game;
         }
 
+        public async Task<Game> GetOneQuietly(int gameId)
+        {
+            return await _gameRepository.FindOneById(gameId);
+        }
+
         public async Task<Game> GetOneQuietly(int gameId, int gameStatus)
         {
             return await _gameRepository.FindOneByIdAndGameStatus(gameId, gameStatus);

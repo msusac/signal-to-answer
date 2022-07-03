@@ -97,6 +97,18 @@ export function retrieveUser() {
   return app.state.user
 }
 
+export function retrieveUsername() {
+  return isNotNil(app.state.user) ? app.state.user.username : ''
+}
+
+export function retrieveWinLossRatio() {
+  const wins = app.state.wins
+  const losses = app.state.losses
+  const winLossRatio = app.state.winLossRatio
+ 
+  return { wins, losses, winLossRatio }
+}
+
 // Game Hub
 export function gameHubStartConnection(gameId) {
   showLoadingModal("Establishing connection to game...")
@@ -276,6 +288,14 @@ export function presenceHubStartConnection() {
   connection.on("ReceivePrivateGameLoadingMessage", (message) => {
     app.setState({ loadingModalMessage: message })
   })
+
+  connection.on("ReceiveWinLossRatio", (dto) => {
+    app.setState({ 
+      wins: dto.wins,
+      losses: dto.losses,
+      winLossRatio: dto.winLossRatio
+    })
+  })
 }
 
 export function presenceHubStopConnection() {
@@ -334,7 +354,11 @@ class App extends Component {
       question: '',
       timer: '',
       endGame: '',
-      showReplay: false
+      showReplay: false,
+
+      wins: 0,
+      losses: 0,
+      winLossRatio: 0
     }
 
     app = this

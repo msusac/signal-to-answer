@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.SignalR;
 using SignalToAnswer.Attributes;
 using SignalToAnswer.Constants;
 using SignalToAnswer.Dtos;
+using SignalToAnswer.Entities;
 using SignalToAnswer.Extensions;
+using SignalToAnswer.Mappers.Dtos;
 using SignalToAnswer.Services;
 using System.Threading.Tasks;
 
@@ -24,17 +26,21 @@ namespace SignalToAnswer.Hubs
         public Task ReceivePrivateGameLoadingMessage(string message);
 
         public Task ReceivePrivateGameCancelled(string message);
+
+        public Task ReceiveWinLossRatio(WinLossRatioDto dto);
     }
 
     [Authorize]
     public class PresenceHub : Hub<IPresenceHub>
     {
+        private readonly WinLossRatioDtoMapper _winLossRatioDtoMapper;
         private readonly ConnectionService _connectionService;
         private readonly GroupService _groupService;
         private readonly UserService _userService;
 
-        public PresenceHub(ConnectionService connectionService, GroupService groupService, UserService userService)
+        public PresenceHub(WinLossRatioDtoMapper winLossRatioDtoMapper, ConnectionService connectionService, GroupService groupService, UserService userService)
         {
+            _winLossRatioDtoMapper = winLossRatioDtoMapper;
             _connectionService = connectionService;
             _groupService = groupService;
             _userService = userService;
@@ -55,6 +61,7 @@ namespace SignalToAnswer.Hubs
             await _connectionService.Save(connection, group, Context.GetUserIdentifier());
             await Clients.User(Context.GetUserIdentifier()).ReceiveGroupType(groupTypeId);
             await CountUsersInPublicLobby();
+            await RetrieveWinLossRatio(user, connection);
         }
 
         private async Task CountUsersInPublicLobby()
@@ -62,6 +69,12 @@ namespace SignalToAnswer.Hubs
             var group = await _groupService.GetOneUnique(GroupType.PUBLIC_LOBBY);
             var users = await _connectionService.GetAll(group.Id.Value);
             await Clients.All.ReceivePublicLobbyCount(users.Count);
+        }
+
+        private async Task RetrieveWinLossRatio(User user, Connection connection)
+        {
+            var dto = await _winLossRatioDtoMapper.Map(user);
+            await Clients.User(connection.UserIdentifier).ReceiveWinLossRatio(dto);
         }
     }
 }

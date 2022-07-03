@@ -1,7 +1,7 @@
-﻿using SignalToAnswer.Dtos.GameHub;
+﻿using SignalToAnswer.Dtos;
 using SignalToAnswer.Entities;
 
-namespace SignalToAnswer.Mappers.Dtos.GameHub
+namespace SignalToAnswer.Mappers.Dtos
 {
     public class QuestionInfoDtoMapper
     {
