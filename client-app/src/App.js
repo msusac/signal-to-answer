@@ -102,7 +102,7 @@ export function gameHubStartConnection(gameId) {
   showLoadingModal("Establishing connection to game...")
 
   const connection = new HubConnectionBuilder()
-    .withUrl("http://localhost:5000/hub/game-hub?gameId=" + gameId, {
+    .withUrl(process.env.REACT_APP_GAME_HUB_URL + '?gameId=' + gameId, {
        accessTokenFactory: () => app.state.token
     })
     .withAutomaticReconnect()
@@ -221,7 +221,7 @@ export function presenceHubStartConnection() {
   showLoadingModal("Establishing connection...")
   
   const connection = new HubConnectionBuilder()
-    .withUrl("http://localhost:5000/hub/presence-hub", {
+    .withUrl(process.env.REACT_APP_PRESENCE_HUB_URL, {
        accessTokenFactory: () => app.state.token
     })
     .withAutomaticReconnect()

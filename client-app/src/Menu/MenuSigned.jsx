@@ -51,7 +51,7 @@ class MenuSigned extends Component {
             <>
                 <div className="row g-4 p-4 justify-content-center">
                     {isUser && (
-                        <div className="col-lg-4">
+                        <div className="col-lg-6">
                             <div className="card border border-success border-5 bg-success">
                                 <div className="card-header bg-success text-center fa-2x">
                                     <h3 className="fw-bolder text-white">TRAINING MODE</h3>
@@ -70,7 +70,7 @@ class MenuSigned extends Component {
                             </div>
                         </div>
                     )}
-                    <div className="col-lg-4">
+                    <div className="col-lg-6">
                         <div className="card border border-danger border-5 bg-danger">
                             <div className="card-header bg-danger text-center fa-2x">
                                 <h3 className="fw-bolder text-white">PUBLIC GAME</h3>
@@ -89,7 +89,7 @@ class MenuSigned extends Component {
                         </div>
                     </div>
                     {isUser && (
-                        <div className="col-lg-4">
+                        <div className="col-lg-6">
                             <div className="card border border-info border-5 bg-info">
                                 <div className="card-header bg-info text-center fa-2x">
                                     <h3 className="fw-bolder text-white">PRIVATE GAME</h3>
@@ -108,47 +108,7 @@ class MenuSigned extends Component {
                             </div>
                         </div>
                     )}
-                    {isUser && (
-                    <>
-                        <div className="col-lg-4">
-                            <div className="card border border-warning border-5 bg-warning">
-                                <div className="card-header bg-warning text-center fa-2x">
-                                    <h3 className="fw-bolder text-white">PROFILE</h3>
-                                </div>
-                                <div className="card-body text-warning fw-bold bg-white">
-                                    <div className="text-center py-2">
-                                        <i className="fa-solid fa-address-book fa-5x"/>
-                                    </div>
-                                    <div className="text-center py-2" style={{minHeight: "125px"}}>
-                                        <p className="card-text">Donec elementum a quam eu lacinia. Mauris eu mattis arcu, a euismod odio</p>
-                                    </div>
-                                    <div className="text-center py-2 d-grid">
-                                        <button type="button" className="btn btn-warning btn-outline-info btn-lg border border-dark border-4 fw-bold text-black" onClick={this.loginAsGuest}>Access here!</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-lg-4">
-                            <div className="card border border-dark border-5 bg-dark">
-                                <div className="card-header bg-dark text-center fa-2x">
-                                    <h3 className="fw-bolder text-white">LEADERBOARD</h3>
-                                </div>
-                                <div className="card-body text-dark fw-bold bg-white">
-                                    <div className="text-center py-2">
-                                        <i className="fa-solid fa-ranking-star fa-5x"/>
-                                    </div>
-                                    <div className="text-center py-2" style={{minHeight: "125px"}}>
-                                        <p className="card-text">Maecenas ligula nibh, lobortis iaculis sapien a, porttitor convallis urna. In non maximus augu</p>
-                                    </div>
-                                    <div className="text-center py-2 d-grid">
-                                        <button type="button" className="btn btn-warning btn-outline-info btn-lg border border-dark border-4 fw-bold text-black" onClick={this.loginAsGuest}>Check it!</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </>
-                    )}
-                    <div className="col-lg-4">
+                    <div className="col-lg-6">
                         <div className="card border border-secondary border-5 bg-secondary">
                             <div className="card-header bg-secondary text-center fa-2x">
                                 <h3 className="fw-bolder text-white">LOGOUT</h3>
