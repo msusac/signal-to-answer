@@ -1,4 +1,4 @@
-﻿namespace SignalToAnswer.Dtos.GameHub
+﻿namespace SignalToAnswer.Dtos
 {
     public class AnswerChoiceDto
     {

@@ -9,7 +9,6 @@ using SignalToAnswer.Integrations.TriviaApi.Mappers;
 using SignalToAnswer.Integrations.TriviaApi.Repositories;
 using SignalToAnswer.Integrations.TriviaApi.Services;
 using SignalToAnswer.Mappers.Dtos;
-using SignalToAnswer.Mappers.Dtos.GameHub;
 using SignalToAnswer.Mappers.Option;
 using SignalToAnswer.Repositories;
 using SignalToAnswer.Services;
@@ -78,6 +77,7 @@ namespace SignalToAnswer.Extensions
             services.AddScoped<AnswerChoiceDtoMapper>();
             services.AddScoped<QuestionInfoDtoMapper>();
             services.AddScoped<ResultInfoDtoMapper>();
+            services.AddScoped<WinLossRatioDtoMapper>();
         }
 
         private static void AddScopedRepository(this IServiceCollection services)

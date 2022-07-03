@@ -1,8 +1,8 @@
-﻿using SignalToAnswer.Dtos.GameHub;
+﻿using SignalToAnswer.Dtos;
 using SignalToAnswer.Entities;
 using System.Collections.Generic;
 
-namespace SignalToAnswer.Mappers.Dtos.GameHub
+namespace SignalToAnswer.Mappers.Dtos
 {
     public class AnswerChoiceDtoMapper
     {

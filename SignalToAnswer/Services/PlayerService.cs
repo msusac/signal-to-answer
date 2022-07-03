@@ -86,6 +86,11 @@ namespace SignalToAnswer.Services
             return await _playerRepository.FindAllByGameId(gameId);
         }
 
+        public async Task<List<Player>> GetAll(Guid userId)
+        {
+            return await _playerRepository.FindAllByUserId(userId);
+        }
+
         public async Task<List<Player>> GetAll(int gameId, int playerStatus)
         {
             return await _playerRepository.FindAllByGameIdAndPlayerStatus(gameId, playerStatus);
