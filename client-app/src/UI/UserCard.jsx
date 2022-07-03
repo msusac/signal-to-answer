@@ -1,23 +1,21 @@
 import { Component } from 'react';
-import { isRole } from '../App';
+import { isRole, retrieveUsername, retrieveWinLossRatio } from '../App';
 import { Roles } from '../services/contants';
 
 class UserCard extends Component {
 
     constructor(props) {
         super(props)
-        
-        this.state = {
-            username : '',
-            wins: 0,
-            games: 0,
-            lastlyPlayed: ''
-        }
     }
 
-    componentDidMount() {}
+    componentDidMount() {
+
+    }
 
     render() {
+        const { wins, losses, winLossRatio } = retrieveWinLossRatio()
+        const username = retrieveUsername()
+
         return (
             <div className="row justify-content-center">
                 <div className="card mb-3 border border-warning border-5 bg-dark" style={{width: "60%"}}>
@@ -29,10 +27,8 @@ class UserCard extends Component {
                         </div>
                         <div className="col-md-8 text-white">
                             <div className="card-body">
-                                <p className="card-title fa-2x">{this.state.username}</p>
-                                <p className="card-text fa-2x"><i className="fa fa-trophy"></i> - {this.state.wins}</p>
-                                <p className="card-text fa-2x"><i className="fa fa-gamepad"></i> - {this.state.games}</p>
-                                <p className="card-text"><small className="text-white">Lastly played on: {this.state.lastlyPlayed}</small></p>
+                                <p className="card-title fa-2x">{username}</p>
+                                <p className="card-text fa-2x"><i className="fa fa-trophy"></i> {wins} - {losses} ({winLossRatio})</p>
                             </div>
                         </div>
                     </div>

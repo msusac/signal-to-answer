@@ -1,11 +1,11 @@
 ﻿using SignalToAnswer.Constants;
-using SignalToAnswer.Dtos.GameHub;
+using SignalToAnswer.Dtos;
 using SignalToAnswer.Entities;
 using SignalToAnswer.Services;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace SignalToAnswer.Mappers.Dtos.GameHub
+namespace SignalToAnswer.Mappers.Dtos
 {
     public class ResultInfoDtoMapper
     {

@@ -24,6 +24,13 @@ namespace SignalToAnswer.Repositories
                 .ToListAsync();
         }
 
+        public async Task<List<Player>> FindAllByUserId(Guid userId)
+        {
+            return await _dataContext.Players
+                .Where(p => p.UserId.Equals(userId) && p.Active.Equals(true))
+                .ToListAsync();
+        }
+
         public async Task<List<Player>> FindAllByGameIdAndPlayerStatus(int gameId, int playerStatus)
         {
             return await _dataContext.Players
