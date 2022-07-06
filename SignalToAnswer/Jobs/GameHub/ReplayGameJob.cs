@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Quartz;
 using SignalToAnswer.Constants;
@@ -13,6 +15,7 @@ namespace SignalToAnswer.Jobs
     [DisallowConcurrentExecution]
     public class ReplayGameJob : IJob
     {
+        private readonly IWebHostEnvironment _env;
         private readonly IHubContext<GameHub, IGameHub> _gameHubContext;
         private readonly ConnectionService _connectionService;
         private readonly GameService _gameService;
@@ -20,9 +23,10 @@ namespace SignalToAnswer.Jobs
         private readonly TokenService _tokenService;
         private readonly UserService _userService;
 
-        public ReplayGameJob(IHubContext<GameHub, IGameHub> gameHubContext, ConnectionService connectionService, GameService gameService,
+        public ReplayGameJob(IWebHostEnvironment env, IHubContext<GameHub, IGameHub> gameHubContext, ConnectionService connectionService, GameService gameService,
             PlayerService playerService, TokenService tokenService, UserService userService)
         {
+            _env = env;
             _gameHubContext = gameHubContext;
             _connectionService = connectionService;
             _gameService = gameService;
@@ -66,8 +70,15 @@ namespace SignalToAnswer.Jobs
             var hostBot = await _userService.CreateHostBot();
             var token = await _tokenService.GenerateToken(hostBot);
 
+            var gameUrl = "http://localhost:5000/hub/game-hub";
+
+            if (!_env.IsDevelopment())
+            {
+                gameUrl = "/api/hub/game-hub";
+            }
+
             var gameHubConnection = new HubConnectionBuilder()
-                .WithUrl("http://localhost:5000/hub/game-hub?gameId=" + game.Id.Value, options =>
+                .WithUrl(gameUrl + "?gameId=" + game.Id.Value, options =>
                 {
                     options.AccessTokenProvider = () => Task.FromResult(token);
                 })

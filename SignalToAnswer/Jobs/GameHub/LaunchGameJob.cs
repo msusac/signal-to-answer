@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.SignalR.Client;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Quartz;
 using SignalToAnswer.Constants;
@@ -11,13 +13,15 @@ namespace SignalToAnswer.Jobs
     [DisallowConcurrentExecution]
     public class LaunchGameJob : IJob
     {
+        private readonly IWebHostEnvironment _env;
         private readonly GameService _gameService;
         private readonly PlayerService _playerService;
         private readonly TokenService _tokenService;
         private readonly UserService _userService;
 
-        public LaunchGameJob(GameService gameService, PlayerService playerService, TokenService tokenService, UserService userService)
+        public LaunchGameJob(IWebHostEnvironment env, GameService gameService, PlayerService playerService, TokenService tokenService, UserService userService)
         {
+            _env = env;
             _gameService = gameService;
             _playerService = playerService;
             _tokenService = tokenService;
@@ -50,8 +54,15 @@ namespace SignalToAnswer.Jobs
             var hostBot = await _userService.CreateHostBot();
             var token = await _tokenService.GenerateToken(hostBot);
 
+            var gameUrl = "http://localhost:5000/hub/game-hub";
+
+            if (!_env.IsDevelopment())
+            {
+                gameUrl = "/api/hub/game-hub";
+            }
+
             var gameHubConnection = new HubConnectionBuilder()
-                .WithUrl("http://localhost:5000/hub/game-hub?gameId=" + game.Id.Value, options =>
+                .WithUrl(gameUrl + "?gameId=" + game.Id.Value, options =>
                 {
                     options.AccessTokenProvider = () => Task.FromResult(token);
                 })
