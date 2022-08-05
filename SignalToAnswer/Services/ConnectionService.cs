@@ -47,6 +47,11 @@ namespace SignalToAnswer.Services
             return connection;
         }
 
+        public async Task<Connection> GetOneQuietly(Guid userId)
+        {
+            return await _connectionRepository.FindOneByUserId(userId);
+        }
+
         public async Task<Connection> GetOne(int groupId, Guid userId)
         {
             var connection = await _connectionRepository.FindOneByGroupIdAndUserId(groupId, userId);

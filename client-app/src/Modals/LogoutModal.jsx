@@ -16,9 +16,9 @@ class LogoutModal extends Component {
         try {
             setUser(null);
             setToken(null);
-            window.localStorage.removeItem("jwt")
             presenceHubChangeGroupUnique(GroupType.OFFLINE)
             presenceHubStopConnection()
+            window.localStorage.removeItem("jwt")
             toast.success("You have successfully signed out!", { containerId: "info" })
             this.onClose()
             hideLoadingModal()

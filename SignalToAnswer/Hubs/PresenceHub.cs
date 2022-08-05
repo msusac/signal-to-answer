@@ -17,9 +17,7 @@ namespace SignalToAnswer.Hubs
 
         public Task ReceivePublicLobbyCount(int count);
 
-        public Task ReceivePublicGame(int gameId);
-
-        public Task ReceivePrivateGame(int gameId);
+        public Task ReceiveGame(int gameId);
 
         public Task ReceivePrivateGameInvite(PrivateGameInviteDto dto);
 
