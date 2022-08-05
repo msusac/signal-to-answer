@@ -1,11 +1,9 @@
-﻿using Microsoft.AspNetCore.SignalR;
-using SignalToAnswer.Attributes;
+﻿using SignalToAnswer.Attributes;
 using SignalToAnswer.Constants;
-using SignalToAnswer.Dtos;
 using SignalToAnswer.Entities;
 using SignalToAnswer.Exceptions;
 using SignalToAnswer.Form;
-using SignalToAnswer.Hubs;
+using SignalToAnswer.Hubs.Contexts;
 using SignalToAnswer.Services;
 using SignalToAnswer.Validators.Form;
 using System.Collections.Generic;
@@ -15,7 +13,7 @@ namespace SignalToAnswer.Facades.Hubs
 {
     public class GameFacade
     {
-        private readonly IHubContext<PresenceHub, IPresenceHub> _presenceHubContext;
+        private readonly PresenceHubContext _presenceHubContext;
         private readonly ConnectionService _connectionService;
         private readonly GameService _gameService;
         private readonly GroupService _groupService;
@@ -24,9 +22,9 @@ namespace SignalToAnswer.Facades.Hubs
         private readonly CreateGameFormValidator _createGameFormValidator;
         private readonly InviteResponseFormValidator _inviteResponseFormValidator;
 
-        public GameFacade(IHubContext<PresenceHub, IPresenceHub> presenceHubContext, ConnectionService connectionService, 
-            GameService gameService, GroupService groupService, PlayerService playerService, 
-            UserService userService, CreateGameFormValidator createGameFormValidator, 
+        public GameFacade(PresenceHubContext presenceHubContext, ConnectionService connectionService,
+            GameService gameService, GroupService groupService, PlayerService playerService,
+            UserService userService, CreateGameFormValidator createGameFormValidator,
             InviteResponseFormValidator inviteResponseFormValidator)
         {
             _presenceHubContext = presenceHubContext;
@@ -40,21 +38,21 @@ namespace SignalToAnswer.Facades.Hubs
         }
 
         [Transactional]
-        public async Task<int> CreateSoloGame(CreateGameForm form, string username)
+        public async Task CreateSoloGame(CreateGameForm form, string username)
         {
             var user = await _userService.GetOne(username);
 
             await IsUserInGroupUnique(user, GroupType.SOLO_LOBBY);
             await _createGameFormValidator.Validate(form, GameType.SOLO);
 
-            var game = await _gameService.CreateGame(form.Categories, form.Limit.Value, GameType.SOLO, form.Difficulty.Value);
+            var game = await _gameService.CreateGame(form.Categories, form.Limit.Value,
+                GameType.SOLO, form.Difficulty.Value);
             var inGameSolo = await _groupService.CreateInGameSoloGroup(game);
 
             await _playerService.AddPlayerToGame(game, user);
 
-            await ChangeGroup(inGameSolo, user);
-
-            return game.Id.Value;
+            await _presenceHubContext.ChangeGroup(inGameSolo, user);
+            await _presenceHubContext.SendGameToUser(game, user);
         }
 
         [Transactional]
@@ -79,12 +77,12 @@ namespace SignalToAnswer.Facades.Hubs
                 if (i == 0)
                 {
                     await _playerService.AddPlayerToGame(game, users[i], InviteStatus.SENT_INVITE);
-                    await ChangeGroup(inviteLobby, users[i]);
+                    await _presenceHubContext.ChangeGroup(inviteLobby, users[i]);
                 }
                 else
                 {
                     await _playerService.AddPlayerToGame(game, users[i], InviteStatus.WAITING_TO_RESPOND);
-                    await SendPrivateGameInviteToUser(game, inviteLobby, users[i], username);
+                    await _presenceHubContext.SendPrivateGameInviteToUser(game, inviteLobby, users[i], username);
                 }
             }
         }
@@ -104,19 +102,13 @@ namespace SignalToAnswer.Facades.Hubs
             if (form.IsAccepted.Value)
             {
                 await _playerService.ChangeInviteStatus(player, InviteStatus.ACCEPTED);
-                await ChangeGroup(inviteLobby, user);
+                await _presenceHubContext.ChangeGroup(inviteLobby, user);
             }
             else
             {
                 await _playerService.ChangeInviteStatus(player, InviteStatus.REJECTED);
                 await CancelPrivateGame(game, inviteLobby);
             }
-        }
-
-        private async Task SendPrivateGameInviteToUser(Game game, Group inviteLobby, User user, string fromUser)
-        {
-            var connection = await _connectionService.GetOne(user.Id);
-            await _presenceHubContext.Clients.User(connection.UserIdentifier).ReceivePrivateGameInvite(new PrivateGameInviteDto(fromUser, game.Id.Value, inviteLobby.Id.Value));
         }
 
         [Transactional]
@@ -126,26 +118,13 @@ namespace SignalToAnswer.Facades.Hubs
             await _gameService.Deactivate(game);
 
             var connections = await _connectionService.GetAll(inviteLobby.Id.Value);
-            var message = "User rejected invite.";
 
             connections.ForEach(async c =>
             {
                 var mainLobby = await _groupService.GetOneUnique(GroupType.MAIN_LOBBY);
-                await ChangeGroup(mainLobby, c);
-                await _presenceHubContext.Clients.User(c.UserIdentifier).ReceivePrivateGameCancelled(message);
+                await _presenceHubContext.ChangeGroup(mainLobby, c);
+                await _presenceHubContext.SendPrivateGameCancelledToUser(c, "User rejected invite.");
             });
-        }
-
-        private async Task ChangeGroup(Group group, Connection connection)
-        {
-            await _connectionService.Save(connection, group, connection.UserIdentifier);
-            await _presenceHubContext.Clients.User(connection.UserIdentifier).ReceiveGroupType(group.GroupType);
-        }
-
-        private async Task ChangeGroup(Group group, User user)
-        {
-            var connection = await _connectionService.GetOne(user.Id);
-            await ChangeGroup(group, connection);
         }
 
         private async Task IsUserInGroupUnique(User user, int groupType)

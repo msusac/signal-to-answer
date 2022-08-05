@@ -263,12 +263,7 @@ export function presenceHubStartConnection() {
     app.setState({ publicLobbyCount: count })
   });
 
-  connection.on("ReceivePublicGame", (gameId) => {
-    gameHubStartConnection(gameId)
-    hideLoadingModal()
-  });
-
-  connection.on("ReceivePrivateGame", (gameId) => {
+  connection.on("ReceiveGame", (gameId) => {
     gameHubStartConnection(gameId)
     hideLoadingModal()
   });

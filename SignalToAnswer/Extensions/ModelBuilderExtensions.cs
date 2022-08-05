@@ -522,7 +522,7 @@ namespace SignalToAnswer.Extensions
 
                 b.Property(u => u.Email)
                 .HasColumnName("EMAIL")
-                .HasColumnType("VARCHAT(256)");
+                .HasColumnType("VARCHAR(256)");
 
                 b.Property(u => u.NormalizedEmail)
                 .HasColumnName("EMAIL_NORMALIZED")

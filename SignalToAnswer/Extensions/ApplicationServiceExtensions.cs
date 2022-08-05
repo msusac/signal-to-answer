@@ -5,6 +5,7 @@ using SignalToAnswer.Data;
 using SignalToAnswer.Facades;
 using SignalToAnswer.Facades.Hubs;
 using SignalToAnswer.Hubs;
+using SignalToAnswer.Hubs.Contexts;
 using SignalToAnswer.Integrations.TriviaApi.Mappers;
 using SignalToAnswer.Integrations.TriviaApi.Repositories;
 using SignalToAnswer.Integrations.TriviaApi.Services;
@@ -48,12 +49,13 @@ namespace SignalToAnswer.Extensions
             services.AddDbContext<DataContext>(options =>
             {
                 options.UseSqlite(config.GetConnectionString("DefaultConnection"));
-            }, ServiceLifetime.Scoped);
+            });
         }
 
         private static void AddScoped(this IServiceCollection services)
         {
             AddScopedFacade(services);
+            AddScopedHubContext(services);
             AddScopedMapper(services);
             AddScopedRepository(services);
             AddScopedService(services);
@@ -65,6 +67,12 @@ namespace SignalToAnswer.Extensions
             services.AddScoped<AccountFacade>();
             services.AddScoped<GameFacade>();
             services.AddScoped<ListFacade>();
+        }
+
+        private static void AddScopedHubContext(this IServiceCollection services)
+        {
+            services.AddScoped<GameHubContext>();
+            services.AddScoped<PresenceHubContext>();
         }
 
         private static void AddScopedMapper(this IServiceCollection services)

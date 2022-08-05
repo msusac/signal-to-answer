@@ -11,7 +11,7 @@ using SignalToAnswer.Data;
 namespace SignalToAnswer.Data.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20220627061901_InitialCreate")]
+    [Migration("20220706204126_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
