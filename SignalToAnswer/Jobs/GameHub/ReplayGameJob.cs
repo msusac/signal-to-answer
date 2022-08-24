@@ -1,12 +1,11 @@
 ﻿using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Quartz;
 using SignalToAnswer.Constants;
 using SignalToAnswer.Entities;
-using SignalToAnswer.Hubs;
+using SignalToAnswer.Hubs.Contexts;
 using SignalToAnswer.Services;
 using System.Threading.Tasks;
 
@@ -16,14 +15,14 @@ namespace SignalToAnswer.Jobs
     public class ReplayGameJob : IJob
     {
         private readonly IWebHostEnvironment _env;
-        private readonly IHubContext<GameHub, IGameHub> _gameHubContext;
+        private readonly GameHubContext _gameHubContext;
         private readonly ConnectionService _connectionService;
         private readonly GameService _gameService;
         private readonly PlayerService _playerService;
         private readonly TokenService _tokenService;
         private readonly UserService _userService;
 
-        public ReplayGameJob(IWebHostEnvironment env, IHubContext<GameHub, IGameHub> gameHubContext, ConnectionService connectionService, GameService gameService,
+        public ReplayGameJob(IWebHostEnvironment env, GameHubContext gameHubContext, ConnectionService connectionService, GameService gameService,
             PlayerService playerService, TokenService tokenService, UserService userService)
         {
             _env = env;
@@ -52,7 +51,7 @@ namespace SignalToAnswer.Jobs
                         var connection = await _connectionService.GetOne(p.UserId);
                         var message = string.Format("{0} / {1} players waiting for game replay.", players.Count, game.MaxPlayerCount);
 
-                        await _gameHubContext.Clients.User(connection.UserIdentifier).ReceiveLoadingMessage(message);
+                        await _gameHubContext.SendLoadingMessageToUser(connection, message);
                     });
 
                     if (players.Count == game.MaxPlayerCount)
@@ -68,7 +67,7 @@ namespace SignalToAnswer.Jobs
         private async Task SendLaunchGameToHostBot(Game game)
         {
             var hostBot = await _userService.CreateHostBot();
-            var token = await _tokenService.GenerateToken(hostBot);
+            var token = await _tokenService.GenerateToken(hostBot, RoleType.HOST_BOT);
 
             var gameUrl = "http://localhost:5000/hub/game-hub";
 

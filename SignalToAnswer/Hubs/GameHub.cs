@@ -84,7 +84,8 @@ namespace SignalToAnswer.Hubs
 
             if (!IsUserHostBot(user))
             {
-                var game = await _gameService.GetOne(Context.GetGameId(), GameStatus.WAITING_FOR_PLAYERS_TO_CONNECT);
+                var game = await _gameService.GetOne(Context.GetGameId(), 
+                    GameStatus.WAITING_FOR_PLAYERS_TO_CONNECT);
                 var group = await _groupService.GetOneInGame(game.Id.Value, game.GameType);
 
                 await Groups.AddToGroupAsync(Context.ConnectionId, group.GroupName);
@@ -236,7 +237,7 @@ namespace SignalToAnswer.Hubs
 
             if (game.GameType != GameType.SOLO)
             {
-                await SendGameReplayInviteToUsers(game, user);                
+                await SendGameReplayInviteToUsers(game, user);
             }
         }
 

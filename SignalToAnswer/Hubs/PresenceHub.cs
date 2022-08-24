@@ -7,6 +7,7 @@ using SignalToAnswer.Entities;
 using SignalToAnswer.Extensions;
 using SignalToAnswer.Mappers.Dtos;
 using SignalToAnswer.Services;
+using System;
 using System.Threading.Tasks;
 
 namespace SignalToAnswer.Hubs
@@ -17,9 +18,7 @@ namespace SignalToAnswer.Hubs
 
         public Task ReceivePublicLobbyCount(int count);
 
-        public Task ReceivePublicGame(int gameId);
-
-        public Task ReceivePrivateGame(int gameId);
+        public Task ReceiveGame(int gameId);
 
         public Task ReceivePrivateGameInvite(PrivateGameInviteDto dto);
 
@@ -28,6 +27,8 @@ namespace SignalToAnswer.Hubs
         public Task ReceivePrivateGameCancelled(string message);
 
         public Task ReceiveWinLossRatio(WinLossRatioDto dto);
+
+        public Task ReceiveOnLogout();
     }
 
     [Authorize]
@@ -51,7 +52,15 @@ namespace SignalToAnswer.Hubs
             await ChangeGroupUnique(GroupType.MAIN_LOBBY);
         }
 
+        public override async Task OnDisconnectedAsync(Exception exception)
+        {
+            await ChangeGroupUnique(GroupType.OFFLINE);
+
+            await base.OnDisconnectedAsync(exception);
+        }
+
         [Transactional]
+        [HubMethodName("ChangeGroupUnique")]
         public async Task ChangeGroupUnique(int groupTypeId)
         {
             var group = await _groupService.GetOneUnique(groupTypeId);
@@ -75,6 +84,14 @@ namespace SignalToAnswer.Hubs
         {
             var dto = await _winLossRatioDtoMapper.Map(user);
             await Clients.User(connection.UserIdentifier).ReceiveWinLossRatio(dto);
+        }
+
+        [HubMethodName("Logout")]
+        public async Task Logout()
+        {
+            var user = await _userService.GetOne(Context.GetUsername());
+            var connection = await _connectionService.GetOne(user.Id);
+            await Clients.User(connection.UserIdentifier).ReceiveOnLogout();
         }
     }
 }

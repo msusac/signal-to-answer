@@ -33,11 +33,14 @@ namespace SignalToAnswer.Jobs
 
             users.ForEach(async u =>
             {
-                var connection = await _connectionService.GetOne(u.Id);
+                var connection = await _connectionService.GetOneQuietly(u.Id);
 
-                if (DateTime.Now.Subtract(connection.UpdatedAt).Hours >= 1)
+                if (connection == null || DateTime.Now.Subtract(connection.UpdatedAt).Minutes >= 90)
                 {
-                    await _connectionService.Deactivate(connection);
+                    if (connection != null)
+                    {
+                        await _connectionService.Deactivate(connection);
+                    }
                     await _userService.Deactivate(u);
                     count++;
                 }

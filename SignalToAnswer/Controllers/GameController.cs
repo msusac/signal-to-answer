@@ -20,9 +20,9 @@ namespace SignalToAnswer.Controllers
         }
 
         [HttpPost("create-solo")]
-        public async Task<int> CreateSoloGame([FromBody] CreateGameForm form)
+        public async Task CreateSoloGame([FromBody] CreateGameForm form)
         {
-            return await _gameFacade.CreateSoloGame(form, User.GetUsername());
+            await _gameFacade.CreateSoloGame(form, User.GetUsername());
         }
 
         [HttpPost("create-private")]

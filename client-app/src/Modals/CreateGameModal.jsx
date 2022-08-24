@@ -117,8 +117,7 @@ class CreateGameModal extends Component {
         }
         
         try {
-            const gameId = await api.Game.createSolo(body)
-            gameHubStartConnection(gameId)
+            await api.Game.createSolo(body)
             hideLoadingModal()
             this.onClear()
         }

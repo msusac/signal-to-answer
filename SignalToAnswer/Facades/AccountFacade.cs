@@ -1,4 +1,5 @@
-﻿using SignalToAnswer.Dtos;
+﻿using SignalToAnswer.Constants;
+using SignalToAnswer.Dtos;
 using SignalToAnswer.Form;
 using SignalToAnswer.Mappers.Dtos;
 using SignalToAnswer.Services;
@@ -37,7 +38,7 @@ namespace SignalToAnswer.Facades
             await _loginFormValidator.Validate(form);
 
             var user = await _userService.GetOne(form.UserName, "USER");
-            var token = await _tokenService.GenerateToken(user);
+            var token = await _tokenService.GenerateToken(user, RoleType.USER);
 
             return _userDtoMapper.Map(user, token);
         }
@@ -45,7 +46,7 @@ namespace SignalToAnswer.Facades
         public async Task<UserDto> LoginAsGuest()
         {
             var user = await _userService.CreateGuest();
-            var token = await _tokenService.GenerateToken(user);
+            var token = await _tokenService.GenerateToken(user, RoleType.GUEST);
 
             return _userDtoMapper.Map(user, token);
         }
