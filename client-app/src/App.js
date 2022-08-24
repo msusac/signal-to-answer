@@ -291,6 +291,13 @@ export function presenceHubStartConnection() {
       winLossRatio: dto.winLossRatio
     })
   })
+
+  connection.on("ReceiveOnLogout", () => {
+    setUser(null);
+    setToken(null);
+    window.localStorage.removeItem("jwt")
+    presenceHubStopConnection()
+  });
 }
 
 export function presenceHubStopConnection() {
@@ -303,9 +310,11 @@ export function presenceHubStopConnection() {
 }
 
 export function presenceHubChangeGroupUnique(groupType) {
-  app.state.presenceHubConnection.invoke("ChangeGroupUnique", groupType.id).catch((ex) => {
-    toast.error("An error has occurred while changing connection groupType.", { containerId: "info" })
-  })
+  app.state.presenceHubConnection.invoke("ChangeGroupUnique", groupType.id);
+}
+
+export function presenceHubLogout() {
+  app.state.presenceHubConnection.invoke("Logout");
 }
 
 // Other connection functions

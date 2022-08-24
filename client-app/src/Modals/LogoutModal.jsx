@@ -1,7 +1,6 @@
 import { Component } from "react";
 import { toast } from "react-toastify";
-import { hideLoadingModal, presenceHubChangeGroupUnique, presenceHubStopConnection, setToken, setUser, showLoadingModal } from "../App";
-import { GroupType } from "../services/contants";
+import { hideLoadingModal, presenceHubLogout, showLoadingModal } from "../App";
 
 class LogoutModal extends Component {
     constructor(props) {
@@ -14,13 +13,9 @@ class LogoutModal extends Component {
     onLogout() {
         showLoadingModal("Signing out...")
         try {
-            setUser(null);
-            setToken(null);
-            presenceHubChangeGroupUnique(GroupType.OFFLINE)
-            presenceHubStopConnection()
-            window.localStorage.removeItem("jwt")
-            toast.success("You have successfully signed out!", { containerId: "info" })
+            presenceHubLogout();
             this.onClose()
+            toast.success("You have successfully signed out!", { containerId: "info" })
             hideLoadingModal()
         }
         catch (ex) {
