@@ -147,7 +147,8 @@ namespace SignalToAnswer.Services
         public async Task Deactivate(User user)
         {
             user.Active = false;
-            await _userRepository.Save(user);
+            user.UserRole.Active = false;
+            await _userRepository.SaveAlt(user);
         }
 
         [Transactional]

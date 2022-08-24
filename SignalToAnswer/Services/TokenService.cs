@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using SignalToAnswer.Attributes;
+using SignalToAnswer.Constants;
 using SignalToAnswer.Entities;
 using System;
 using System.Collections.Generic;
@@ -25,7 +26,7 @@ namespace SignalToAnswer.Services
         }
 
         [Transactional]
-        public async Task<string> GenerateToken(User user)
+        public async Task<string> GenerateToken(User user, string role)
         {
             var roles = await _userManager.GetRolesAsync(user);
 
@@ -38,10 +39,20 @@ namespace SignalToAnswer.Services
 
             var creds = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature);
 
+            var expires = DateTime.Now;
+
+            if (role.Equals(RoleType.GUEST) || role.Equals(RoleType.HOST_BOT))
+            {
+                expires.AddHours(1);
+            }
+            else { 
+                expires.AddDays(1);
+            }
+
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.Now.AddDays(1),
+                Expires = expires,
                 SigningCredentials = creds
             };
 

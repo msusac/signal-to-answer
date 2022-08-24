@@ -67,7 +67,7 @@ namespace SignalToAnswer.Jobs
         private async Task SendLaunchGameToHostBot(Game game)
         {
             var hostBot = await _userService.CreateHostBot();
-            var token = await _tokenService.GenerateToken(hostBot);
+            var token = await _tokenService.GenerateToken(hostBot, RoleType.HOST_BOT);
 
             var gameUrl = "http://localhost:5000/hub/game-hub";
 

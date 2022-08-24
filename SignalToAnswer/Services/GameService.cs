@@ -33,7 +33,7 @@ namespace SignalToAnswer.Services
                 MaxPlayerCount = 2,
                 GameStatus = GameStatus.WAITING_FOR_PLAYERS_TO_CONNECT,
                 GameType = GameType.PUBLIC,
-                QuestionsCount = 15,
+                QuestionsCount = 10,
                 QuestionDifficulty = QuestionDifficulty.DEFAULT,
                 QuestionCategories = new List<int>()
             };

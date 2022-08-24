@@ -35,7 +35,7 @@ namespace SignalToAnswer.Jobs
             {
                 var connection = await _connectionService.GetOneQuietly(u.Id);
 
-                if (connection == null || DateTime.Now.Subtract(connection.UpdatedAt).Hours >= 1)
+                if (connection == null || DateTime.Now.Subtract(connection.UpdatedAt).Minutes >= 90)
                 {
                     if (connection != null)
                     {
