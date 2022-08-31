@@ -5,7 +5,6 @@ using SignalToAnswer.Exceptions;
 using SignalToAnswer.Repositories;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace SignalToAnswer.Services
@@ -13,11 +12,13 @@ namespace SignalToAnswer.Services
     public class UserService
     {
         private readonly GroupService _groupService;
+        private readonly ConnectionRepository _connectionRepository;
         private readonly UserRepository _userRepository;
 
-        public UserService(GroupService groupService, UserRepository userRepository)
+        public UserService(GroupService groupService, ConnectionRepository connectionRepository, UserRepository userRepository)
         {
             _groupService = groupService;
+            _connectionRepository = connectionRepository;
             _userRepository = userRepository;
         }
 
@@ -35,9 +36,10 @@ namespace SignalToAnswer.Services
                 Role = RoleType.GUEST
             };
 
-            guest.Connection = new Connection { User = guest, Group = group };
+            guest = await _userRepository.Save(guest);
 
-            await _userRepository.Save(guest);
+            var connection = new Connection { GroupId = group.Id.Value, UserId = guest.Id };
+            await _connectionRepository.Save(connection);
 
             return await _userRepository.FindOneById(guest.Id);
         }
@@ -47,7 +49,7 @@ namespace SignalToAnswer.Services
         {
             var username = await GenerateHostBotUsername();
 
-            var guest = new User
+            var bot = new User
             {
                 Id = Guid.Empty,
                 UserName = username,
@@ -55,9 +57,9 @@ namespace SignalToAnswer.Services
                 Role = RoleType.HOST_BOT
             };
 
-            await _userRepository.Save(guest);
+            await _userRepository.Save(bot);
 
-            return await _userRepository.FindOneById(guest.Id);
+            return await _userRepository.FindOneById(bot.Id);
         }
 
         [Transactional]
@@ -73,9 +75,11 @@ namespace SignalToAnswer.Services
                 Password = password,
                 Role = RoleType.USER
             };
-            user.Connection = new Connection { User = user, Group = group };
 
-            await _userRepository.Save(user);
+            user = await _userRepository.Save(user);
+
+            var connection = new Connection { GroupId = group.Id.Value, UserId = user.Id };
+            await _connectionRepository.Save(connection);
 
             return await _userRepository.FindOneById(user.Id);
         }

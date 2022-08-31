@@ -29,9 +29,7 @@ namespace SignalToAnswer.Mappers.Dtos
                 Description = taQuestion.Question,
                 Difficulty = await GetDifficulty(taQuestion.Difficulty),
                 Category = await GetCategory(taQuestion.Category),
-                Game = game,
                 GameId = game.Id.Value,
-                Match = match,
                 MatchId = match.Id.Value
             };
 
@@ -42,15 +40,16 @@ namespace SignalToAnswer.Mappers.Dtos
             return question;
         }
 
-        public List<Question> Map(List<TAQuestion> taQuestions, Game game, Match match)
+        public async Task<List<Question>> Map(List<TAQuestion> taQuestions, Game game, Match match)
         {
             var row = 0;
             var questionList = new List<Question>();
 
-            taQuestions.ForEach(async q => {
+            foreach (var q in taQuestions)
+            {
                 row++;
                 questionList.Add(await Map(q, game, match, row));
-            });
+            }
 
             return questionList;
         }

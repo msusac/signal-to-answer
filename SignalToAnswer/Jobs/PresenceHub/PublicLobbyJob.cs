@@ -53,15 +53,14 @@ namespace SignalToAnswer.Jobs
                     var game = await _gameService.CreateGame();
                     var inGamePublic = await _groupService.CreateInGamePublicGroup(game);
 
-                    connections.ForEach(async c =>
+                    foreach (var c in connections)
                     {
                         var user = await _userService.GetOne(c.UserId);
                         await _playerService.AddPlayerToGame(game, user);
 
                         await _presenceHubContext.ChangeGroup(inGamePublic, c);
                         await _presenceHubContext.SendGameToUser(game, c);
-
-                    });
+                    }
 
                     await _presenceHubContext.CountUsersInPublicLobby();
                 }

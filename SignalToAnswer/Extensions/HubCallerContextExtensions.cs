@@ -3,7 +3,7 @@ using System;
 
 namespace SignalToAnswer.Extensions
 {
-    public static class HubContextCallerExtensions
+    public static class HubCallerContextExtensions
     {
         public static int GetGameId(this HubCallerContext context)
         {

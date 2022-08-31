@@ -458,7 +458,7 @@ namespace SignalToAnswer.Hubs
         {
             var results = await _resultService.GetAllNoTracking(game.Id.Value, match.Id.Value);
 
-            var resultInfoDtos = _resultInfoDtoMapper.Map(results, endGame);
+            var resultInfoDtos = await _resultInfoDtoMapper.Map(results, endGame);
 
             var group = await _groupService.GetOneInGame(game.Id.Value, game.GameType);
             await Clients.Group(group.GroupName).ReceiveResultInfo(resultInfoDtos);
@@ -467,7 +467,7 @@ namespace SignalToAnswer.Hubs
         private async Task SendResultInfoToAllUsers(Game game, Match match, Question question)
         {
             var results = await _resultService.GetAllNoTracking(game.Id.Value, match.Id.Value);
-            var resultInfoDtos = _resultInfoDtoMapper.Map(results, question);
+            var resultInfoDtos = await _resultInfoDtoMapper.Map(results, question);
 
             var group = await _groupService.GetOneInGame(game.Id.Value, game.GameType);
             await Clients.Group(group.GroupName).ReceiveResultInfo(resultInfoDtos);
@@ -493,7 +493,7 @@ namespace SignalToAnswer.Hubs
         {
             var connections = await GetInGameConnections(game);
 
-            connections.ForEach(async (c) =>
+            foreach (var c in connections)
             {
                 var player = await _playerService.GetOneQuietly(game.Id.Value, c.UserId);
 
@@ -533,7 +533,7 @@ namespace SignalToAnswer.Hubs
                     }
                 }
                 await Clients.User(c.UserIdentifier).ReceiveAnswerChoice(answerChoiceDtos);
-            });
+            };
         }
 
         private async Task SendTimerInfoToAllUsers(Game game, int time)
@@ -608,14 +608,20 @@ namespace SignalToAnswer.Hubs
 
                 if (results.Count > 0)
                 {
-                    results.ForEach(async r => await _resultService.Deactivate(r));
+                    foreach (var r in results)
+                    {
+                        await _resultService.Deactivate(r);
+                    }
                 }
 
                 var questions = await _questionService.GetAll(game.Id.Value, match.Id.Value);
 
                 if (questions.Count > 0)
                 {
-                    questions.ForEach(async q => await _questionService.Deactivate(q));
+                    foreach (var q in questions)
+                    {
+                        await _questionService.Deactivate(q);
+                    }
                 }
             }
 
@@ -627,7 +633,10 @@ namespace SignalToAnswer.Hubs
 
                 if (players.Count > 0)
                 {
-                    players.ForEach(async p => await _playerService.Deactivate(p));
+                    foreach (var p in players)
+                    {
+                        await _playerService.Deactivate(p);
+                    }
                 }
             }
 
@@ -663,11 +672,17 @@ namespace SignalToAnswer.Hubs
 
             if (bestResults.Count > 1)
             {
-                bestResults.ForEach(async r => await SaveResultEndGame(r.Id.Value, r.TotalScore, WinnerStatus.DRAW));
+                foreach (var r in bestResults)
+                {
+                    await SaveResultEndGame(r.Id.Value, r.TotalScore, WinnerStatus.DRAW);
+                }
             }
             else
             {
-                bestResults.ForEach(async r => await SaveResultEndGame(r.Id.Value, r.TotalScore, WinnerStatus.WIN));
+                foreach (var r in bestResults)
+                {
+                    await SaveResultEndGame(r.Id.Value, r.TotalScore, WinnerStatus.WIN);
+                }
             }
 
             var bestScore = bestResults.First().TotalScore;
@@ -676,7 +691,10 @@ namespace SignalToAnswer.Hubs
                 .Where(r => !r.TotalScore.Equals(bestScore))
                 .ToList();
 
-            otherResults.ForEach(async r => await SaveResultEndGame(r.Id.Value, r.TotalScore, WinnerStatus.LOSS));
+            foreach (var r in otherResults)
+            {
+                await SaveResultEndGame(r.Id.Value, r.TotalScore, WinnerStatus.LOSS);
+            }
         }
 
         private async Task SaveResultEndGame(int id, int totalScore, int winnerStatus)

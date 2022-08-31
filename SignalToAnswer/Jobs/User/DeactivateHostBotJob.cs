@@ -26,14 +26,14 @@ namespace SignalToAnswer.Jobs.User
             var users = await _userService.GetAll(RoleType.HOST_BOT);
             var count = 0;
 
-            users.ForEach(async u =>
+            foreach (var u in users)
             {
                 if (DateTime.Now.Subtract(u.CreatedAt).Minutes >= 35)
                 {
                     await _userService.DeactivateAlt(u);
                     count++;
                 }
-            });
+            };
 
             if (count > 0)
             {

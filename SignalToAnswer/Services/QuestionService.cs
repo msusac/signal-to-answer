@@ -27,7 +27,11 @@ namespace SignalToAnswer.Services
         public async Task<List<Question>> CreateQuestions(Game game, Match match)
         {
             var questions = await _taService.RetrieveQuestions(game, match);
-            questions.ForEach(async q => await _questionRepository.Save(q));
+
+            foreach (var q in questions)
+            {
+                await _questionRepository.Save(q);
+            }
 
             return questions;
         }
