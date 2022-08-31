@@ -54,18 +54,26 @@ namespace SignalToAnswer.Mappers.Dtos
             return new ResultInfoDto(user.UserName, result.TotalScore);
         }
 
-        public List<ResultInfoDto> Map(List<Result> results, bool endGame)
+        public async Task<List<ResultInfoDto>> Map(List<Result> results, bool endGame)
         {
             var dtos = new List<ResultInfoDto>();
-            results.ForEach(async r => dtos.Add(await Map(r, endGame)));
+            
+            foreach (var r in results)
+            {
+                dtos.Add(await Map(r, endGame));
+            }
 
             return dtos;
         }
 
-        public List<ResultInfoDto> Map(List<Result> results, Question question)
+        public async Task<List<ResultInfoDto>> Map(List<Result> results, Question question)
         {
             var dtos = new List<ResultInfoDto>();
-            results.ForEach(async r => dtos.Add(await Map(r, question)));
+
+            foreach (var r in results)
+            {
+                dtos.Add(await Map(r, question));
+            }
 
             return dtos;
         }

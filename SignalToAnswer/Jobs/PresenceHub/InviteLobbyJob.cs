@@ -38,7 +38,7 @@ namespace SignalToAnswer.Jobs
         {
             var gameIds = await _gameService.GetAllId(GameType.PRIVATE, GameStatus.WAITING_FOR_PLAYERS_TO_ACCEPT_INVITE);
 
-            gameIds.ForEach(async id =>
+            foreach (var id in gameIds)
             {
                 var game = await _gameService.GetOneQuietly(id.Value, GameStatus.WAITING_FOR_PLAYERS_TO_ACCEPT_INVITE);
 
@@ -68,7 +68,7 @@ namespace SignalToAnswer.Jobs
                         await LaunchPrivateGame(game, inviteLobby);
                     }
                 }
-            });
+            }
         }
 
         private async Task<bool> CheckIfHostIsInInviteLobby(Player host, Group inviteLobby)
@@ -114,13 +114,13 @@ namespace SignalToAnswer.Jobs
 
             var connections = await _connectionService.GetAll(inviteLobby.Id.Value);
 
-            connections.ForEach(async c =>
+            foreach (var c in connections)
             {
                 var mainLobby = await _groupService.GetOneUnique(GroupType.MAIN_LOBBY);
                 await _presenceHubContext.ChangeGroup(mainLobby, c);
 
                 await _presenceHubContext.SendPrivateGameCancelledToUser(c, message);
-            });
+            }
         }
 
         private async Task LaunchPrivateGame(Game game, Group inviteLobby)
@@ -130,12 +130,12 @@ namespace SignalToAnswer.Jobs
             var inGamePrivate = await _groupService.CreateInGamePrivateGroup(game);
             var connections = await _connectionService.GetAll(inviteLobby.Id.Value);
 
-            connections.ForEach(async c =>
+            foreach (var c in connections)
             {
 
                 await _presenceHubContext.ChangeGroup(inGamePrivate, c);
                 await _presenceHubContext.SendGameToUser(game, c);
-            });
+            }
         }
 
         private async Task<int> GetPlayersInInviteLobbyCount(Game game, Group inviteLobby)
@@ -143,7 +143,10 @@ namespace SignalToAnswer.Jobs
             var connections = await _connectionService.GetAll(inviteLobby.Id.Value);
             var message = string.Format("{0} / {1} players connected in invite lobby.\n Launching game when all players are connected.", connections.Count, game.MaxPlayerCount);
 
-            connections.ForEach(async c => await _presenceHubContext.SendPrivateGameLoadingMessage(c, message));
+            foreach (var c in connections)
+            {
+                await _presenceHubContext.SendPrivateGameLoadingMessage(c, message);
+            }
 
             return connections.Count;
         }

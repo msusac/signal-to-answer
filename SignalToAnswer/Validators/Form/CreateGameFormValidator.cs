@@ -90,12 +90,13 @@ namespace SignalToAnswer.Validators.Form
                 }
                 else
                 {
-                    inviteUsers.ForEach(async user => {
-                        if ((await _userRepository.FindOneByUsernameAndGroup_IdAndRole_Name(user, GroupType.MAIN_LOBBY, RoleType.USER)) == null)
+                    foreach (var u in inviteUsers)
+                    {
+                        if ((await _userRepository.FindOneByUsernameAndGroup_IdAndRole_Name(u, GroupType.MAIN_LOBBY, RoleType.USER)) == null)
                         {
                             _validationManager.AddValidationError("inviteUser", "User not found in main lobby!");
                         }
-                    });
+                    }
                 }
             }
         }

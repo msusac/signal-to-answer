@@ -31,7 +31,7 @@ namespace SignalToAnswer.Jobs
             var users = await _userService.GetAll(RoleType.GUEST, group.Id.Value);
             var count = 0;
 
-            users.ForEach(async u =>
+            foreach (var u in users)
             {
                 var connection = await _connectionService.GetOneQuietly(u.Id);
 
@@ -44,7 +44,7 @@ namespace SignalToAnswer.Jobs
                     await _userService.Deactivate(u);
                     count++;
                 }
-            });
+            };
 
             if (count > 0)
             {

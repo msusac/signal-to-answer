@@ -23,11 +23,8 @@ namespace SignalToAnswer.Services
         {
             var result = new Result
             {
-                Game = game,
                 GameId = game.Id.Value,
-                Match = match,
                 MatchId = match.Id.Value,
-                Player = player,
                 PlayerId = player.Id.Value,
             };
 
@@ -41,7 +38,10 @@ namespace SignalToAnswer.Services
 
             var results = new List<Result>();
 
-            players.ForEach(async p => results.Add(await CreateResult(game, match, p)));
+            foreach (var p in players)
+            {
+                results.Add(await CreateResult(game, match, p));
+            }
 
             return results;
         }

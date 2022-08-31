@@ -20,7 +20,6 @@ namespace SignalToAnswer.Services
         {
             var match = new Match
             {
-                Game = game,
                 GameId = game.Id.Value
             };
 

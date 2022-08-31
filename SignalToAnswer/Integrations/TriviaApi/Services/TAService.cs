@@ -38,7 +38,7 @@ namespace SignalToAnswer.Integrations.TriviaApi.Services
 
             var content = await httpResponse.Content.ReadAsStringAsync();
 
-            return _questionMapper.Map(JsonConvert.DeserializeObject<List<TAQuestion>>(content), game, match);
+            return await _questionMapper.Map(JsonConvert.DeserializeObject<List<TAQuestion>>(content), game, match);
         }
     }
 }
