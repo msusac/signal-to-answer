@@ -28,7 +28,10 @@ namespace SignalToAnswer.Data
                 new Group{ GroupName = "PRIVATE_LOBBY", GroupType = GroupType.PRIVATE_LOBBY, IsUnique = true },
             };
 
-            groups.ForEach(async g => await dataContext.Groups.AddAsync(g));
+            foreach (var group in groups)
+            {
+                await dataContext.Groups.AddAsync(group);
+            }
 
             await dataContext.SaveChangesAsync();
         }
@@ -47,7 +50,10 @@ namespace SignalToAnswer.Data
                 new Role{ Name = "HOST_BOT" }
             };
 
-            roles.ForEach(async r => await roleManager.CreateAsync(r));
+            foreach (var r in roles)
+            {
+                await roleManager.CreateAsync(r);
+            }
         }
 
         public static async Task SeedUsers(UserManager<User> userManager)
@@ -78,11 +84,11 @@ namespace SignalToAnswer.Data
 
             var users = await dataContext.Users.ToListAsync();
 
-            users.ForEach(u =>
+            foreach (var u in users)
             {
                 u.Connection = new Connection { Group = group, User = u };
                 dataContext.Users.Update(u);
-            });
+            }
 
             await dataContext.SaveChangesAsync();
         }
@@ -108,7 +114,10 @@ namespace SignalToAnswer.Data
                 new TAQuestionCategory("Sport & Leisure", "sport_and_leisure")
             };
 
-            categories.ForEach(async c => await dataContext.TAQuestionCategories.AddAsync(c));
+            foreach (var category in categories)
+            {
+                await dataContext.TAQuestionCategories.AddAsync(category);
+            }
 
             await dataContext.SaveChangesAsync();
         }
@@ -127,7 +136,10 @@ namespace SignalToAnswer.Data
               new TAQuestionDifficulty("hard", "hard")
             };
 
-            difficulties.ForEach(async d => await dataContext.TAQuestionDifficulty.AddAsync(d));
+            foreach (var difficulty in difficulties)
+            {
+                await dataContext.TAQuestionDifficulty.AddAsync(difficulty);
+            }
 
             await dataContext.SaveChangesAsync();
         }

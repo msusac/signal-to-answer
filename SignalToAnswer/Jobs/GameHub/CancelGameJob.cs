@@ -27,7 +27,7 @@ namespace SignalToAnswer.Jobs
         {
             var gameIds = await _gameService.GetAllId(GameStatus.WAITING_FOR_PLAYERS_TO_CONNECT);
 
-            gameIds.ForEach(async id =>
+            foreach (var id in gameIds)
             {
                 var game = await _gameService.GetOne(id.Value);
                 var inGame = await _groupService.GetOne(id.Value);
@@ -40,7 +40,7 @@ namespace SignalToAnswer.Jobs
                     await _gameService.Deactivate(game);
                     await _gameHubContext.SendGameCancelledToGroup(inGame, "Not enough users for starting game!");
                 }
-            });
+            }
         }
     }
 }

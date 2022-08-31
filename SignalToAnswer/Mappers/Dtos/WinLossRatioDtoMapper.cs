@@ -29,7 +29,7 @@ namespace SignalToAnswer.Mappers.Dtos
 
             var players = await _playerService.GetAll(user.Id);
 
-            players.ForEach(async p =>
+            foreach (var p in players)
             {
                 var game = await _gameService.GetOneQuietly(p.GameId);
 
@@ -37,7 +37,7 @@ namespace SignalToAnswer.Mappers.Dtos
                 {
                     var matches = await _matchService.GetAllFinished(p.GameId);
 
-                    matches.ForEach(async m =>
+                    foreach (var m in matches)
                     {
                         var result = await _resultService.GetOne(p.GameId, m.Id.Value, p.Id.Value);
 
@@ -49,9 +49,9 @@ namespace SignalToAnswer.Mappers.Dtos
                         {
                             losses++;
                         }
-                    });
+                    }
                 }
-            });
+            }
 
             decimal ratio = GetWinLossRatio(wins, losses);
 

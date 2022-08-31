@@ -21,7 +21,7 @@ namespace SignalToAnswer.Integrations.TriviaApi.Mappers
         {
             var request = new TARequest
             {
-                Categories = GetCategories(game.QuestionCategories),
+                Categories = await GetCategories(game.QuestionCategories),
                 Difficulty = await GetDifficulty(game.QuestionDifficulty),
                 Limit = GetLimit(game.QuestionsCount)
             };
@@ -29,7 +29,7 @@ namespace SignalToAnswer.Integrations.TriviaApi.Mappers
             return request;
         }
 
-        private string GetCategories(List<int> questionCategories)
+        private async Task<string> GetCategories(List<int> questionCategories)
         {
             if (questionCategories.Count == 0)
             {
@@ -38,12 +38,11 @@ namespace SignalToAnswer.Integrations.TriviaApi.Mappers
 
             var categories = new List<string>();
 
-
-            questionCategories.ForEach(async id =>
+            foreach (var id in questionCategories)
             {
                 var category = await _categoryRepository.FindOneById(id);
                 categories.Add(category.Param);
-            });
+            }
 
             return "categories=" + string.Join(',', categories);
         }

@@ -24,7 +24,7 @@ namespace SignalToAnswer.Jobs
         {
             var gameIds = await _gameService.GetAllId(GameStatus.WAITING_FOR_PLAYERS_TO_CONNECT);
 
-            gameIds.ForEach(async id =>
+            foreach (var id in gameIds)
             {
                 var game = await _gameService.GetOneQuietly(id.Value, GameStatus.WAITING_FOR_PLAYERS_TO_CONNECT);
 
@@ -38,7 +38,7 @@ namespace SignalToAnswer.Jobs
                         await _gameHubContext.SendHostBotToGame(game);
                     }
                 }
-            });
+            }
         }
     }
 }

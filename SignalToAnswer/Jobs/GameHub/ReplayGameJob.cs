@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Hosting;
-using Quartz;
+﻿using Quartz;
 using SignalToAnswer.Constants;
 using SignalToAnswer.Hubs.Contexts;
 using SignalToAnswer.Services;
@@ -27,7 +26,7 @@ namespace SignalToAnswer.Jobs
         {
             var gameIds = await _gameService.GetAllId(GameStatus.PLAYERS_WANT_TO_REPLAY);
 
-            gameIds.ForEach(async id =>
+            foreach (var id in gameIds)
             {
                 var game = await _gameService.GetOneQuietly(id.Value, GameStatus.PLAYERS_WANT_TO_REPLAY);
 
@@ -36,23 +35,26 @@ namespace SignalToAnswer.Jobs
                     var players = await _playerService.GetAll(game.Id.Value, PlayerStatus.JOINED_GAME,
                         ReplayStatus.WANTS_TO_REPLAY);
 
-                    players.ForEach(async p =>
+                    foreach (var p in players)
                     {
                         var connection = await _connectionService.GetOne(p.UserId);
-                        var message = string.Format("{0} / {1} players waiting for game replay.", 
+                        var message = string.Format("{0} / {1} players waiting for game replay.",
                             players.Count, game.MaxPlayerCount);
 
                         await _gameHubContext.SendLoadingMessageToUser(connection, message);
-                    });
+                    }
 
                     if (players.Count == game.MaxPlayerCount)
                     {
-                        players.ForEach(async p => await _playerService.RemoveReplayStatus(p));
+                        foreach (var p in players)
+                        {
+                            await _playerService.RemoveReplayStatus(p);
+                        }
                         await _gameService.ChangeStatus(game, GameStatus.REPLAYING);
                         await _gameHubContext.SendHostBotToGame(game);
                     }
                 }
-            });
+            }
         }
     }
 }

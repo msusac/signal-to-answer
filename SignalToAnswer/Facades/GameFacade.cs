@@ -70,7 +70,11 @@ namespace SignalToAnswer.Facades.Hubs
             form.InviteUsers.ForEach(user => usernames.Add(user));
 
             var users = new List<User>();
-            usernames.ForEach(async u => users.Add(await _userService.GetOne(u)));
+
+            foreach (var u in usernames)
+            {
+                users.Add(await _userService.GetOne(u));
+            }
 
             for (int i = 0; i < usernames.Count; i++)
             {
@@ -119,12 +123,12 @@ namespace SignalToAnswer.Facades.Hubs
 
             var connections = await _connectionService.GetAll(inviteLobby.Id.Value);
 
-            connections.ForEach(async c =>
+            foreach (var connection in connections)
             {
                 var mainLobby = await _groupService.GetOneUnique(GroupType.MAIN_LOBBY);
-                await _presenceHubContext.ChangeGroup(mainLobby, c);
-                await _presenceHubContext.SendPrivateGameCancelledToUser(c, "User rejected invite.");
-            });
+                await _presenceHubContext.ChangeGroup(mainLobby, connection);
+                await _presenceHubContext.SendPrivateGameCancelledToUser(connection, "User rejected invite.");
+            }
         }
 
         private async Task IsUserInGroupUnique(User user, int groupType)

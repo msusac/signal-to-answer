@@ -27,7 +27,7 @@ namespace SignalToAnswer.Jobs
         {
             var gameIds = await _gameService.GetAllId(GameStatus.PLAYERS_WANT_TO_REPLAY);
 
-            gameIds.ForEach(async id =>
+            foreach(var id in gameIds)
             {
                 var game = await _gameService.GetOne(id.Value);
                 var inGame = await _groupService.GetOne(id.Value);
@@ -39,7 +39,7 @@ namespace SignalToAnswer.Jobs
                     await _gameService.ChangeStatus(game, GameStatus.REPLAY_CANCELLED);
                     await _gameHubContext.SendGameReplayCancelledToGroup(inGame, "Not enough users for replaying game!");
                 }
-            });
+            }
         }
     }
 }

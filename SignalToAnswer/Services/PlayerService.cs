@@ -22,9 +22,7 @@ namespace SignalToAnswer.Services
         {
             var player = new Player
             {
-                Game = game,
                 GameId = game.Id.Value,
-                User = user,
                 UserId = user.Id,
                 PlayerStatus = PlayerStatus.WAITING_TO_JOIN
             };
@@ -39,9 +37,7 @@ namespace SignalToAnswer.Services
         {
             var player = new Player
             {
-                Game = game,
                 GameId = game.Id.Value,
-                User = user,
                 UserId = user.Id,
                 PlayerStatus = PlayerStatus.WAITING_TO_JOIN,
                 InviteStatus = inviteStatus
